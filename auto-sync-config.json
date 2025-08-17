@@ -1,0 +1,58 @@
+{
+  "sync": {
+    "enabled": true,
+    "interval": 5,
+    "taskName": "GitAutoSync",
+    "repoPath": "E:\\AI炼金师-产品优化专家 (2)",
+    "remote": "origin",
+    "branch": "main",
+    "logFile": "sync.log",
+    "silent": true,
+    "autoCommit": true,
+    "autoPush": true,
+    "conflictStrategy": "rebase",
+    "retryAttempts": 3,
+    "retryDelay": 30
+  },
+  "notifications": {
+    "enabled": false,
+    "email": "",
+    "webhook": "",
+    "desktop": true
+  },
+  "backup": {
+    "enabled": true,
+    "backupPath": "backup",
+    "maxBackups": 10,
+    "backupBeforeSync": true
+  },
+  "filters": {
+    "excludeFiles": [
+      "*.tmp",
+      "*.log",
+      "node_modules/",
+      ".git/",
+      "backup/"
+    ],
+    "includeFiles": [
+      "*.js",
+      "*.html",
+      "*.css",
+      "*.json",
+      "*.md"
+    ]
+  },
+  "advanced": {
+    "gitConfig": {
+      "user.name": "sunqing9301-web",
+      "user.email": "sunqing9301-web@users.noreply.github.com",
+      "pull.rebase": true,
+      "push.default": "simple"
+    },
+    "hooks": {
+      "preSync": "",
+      "postSync": "",
+      "onError": ""
+    }
+  }
+} 
