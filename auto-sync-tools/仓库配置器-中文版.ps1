@@ -383,7 +383,7 @@ try {
         $statusLabel.ForeColor = [System.Drawing.Color]::Green
     }
 } catch {
-    Write-Host "加载配置失败: $($_.Exception.Message)"
+    Write-Host "Failed to load configuration: $($_.Exception.Message)"
 }
 
 # Show form
