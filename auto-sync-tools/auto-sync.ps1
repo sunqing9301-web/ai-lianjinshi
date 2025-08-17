@@ -2,7 +2,7 @@
 # 支持自动检测更改、提交、拉取、推送，无需人工干预
 
 param(
-    [string]$RepoPath = $PSScriptRoot,
+    [string]$RepoPath = (Split-Path (Split-Path $PSScriptRoot)),
     [string]$Remote = "origin",
     [string]$Branch = "main",
     [string]$LogFile = "$PSScriptRoot\sync.log",

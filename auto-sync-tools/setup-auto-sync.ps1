@@ -2,7 +2,7 @@
 # 自动创建Windows任务计划，实现完全自动化的Git同步
 
 param(
-    [string]$RepoPath = $PSScriptRoot,
+    [string]$RepoPath = (Split-Path (Split-Path $PSScriptRoot)),
     [string]$SyncInterval = "5",  # 同步间隔（分钟）
     [string]$TaskName = "GitAutoSync",
     [switch]$Force = $false
@@ -26,7 +26,7 @@ function Create-ScheduledTask {
     Write-Host "正在创建Windows任务计划..." -ForegroundColor Yellow
     
     # 构建PowerShell命令
-    $scriptPath = Join-Path $RepoPath "auto-sync.ps1"
+    $scriptPath = Join-Path $PSScriptRoot "auto-sync.ps1"
     $action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-ExecutionPolicy Bypass -File `"$scriptPath`" -Silent"
     
     # 设置触发器（每X分钟执行一次）
@@ -67,7 +67,7 @@ function Main {
     }
     
     # 检查同步脚本
-    $scriptPath = Join-Path $RepoPath "auto-sync.ps1"
+    $scriptPath = Join-Path $PSScriptRoot "auto-sync.ps1"
     if (-not (Test-Path $scriptPath)) {
         Write-Host "❌ 同步脚本不存在: $scriptPath" -ForegroundColor Red
         exit 1
@@ -103,6 +103,7 @@ function Main {
         Write-Host "  任务名称: $TaskName" -ForegroundColor White
         Write-Host "  执行间隔: 每 $SyncInterval 分钟" -ForegroundColor White
         Write-Host "  执行脚本: $scriptPath" -ForegroundColor White
+        Write-Host "  仓库路径: $RepoPath" -ForegroundColor White
         Write-Host ""
         Write-Host "管理任务:" -ForegroundColor Cyan
         Write-Host "  启动任务: Start-ScheduledTask -TaskName '$TaskName'" -ForegroundColor White
