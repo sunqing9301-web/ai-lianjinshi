@@ -1,0 +1,59 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="minimalGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8F00;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="minimalBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#42A5F5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976D2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 简约背景 -->
+  <rect width="128" height="128" rx="20" fill="#FAFAFA"/>
+  
+  <!-- 简约炼金师设计 -->
+  <g transform="translate(64,64)">
+    <!-- 简约炼金瓶轮廓 -->
+    <g stroke="url(#minimalBlue)" stroke-width="3" fill="none">
+      <!-- 瓶身 -->
+      <path d="M-12,-25 L12,-25 L16,-12 L16,18 Q16,24 10,24 L-10,24 Q-16,24 -16,18 L-16,-12 Z"/>
+      
+      <!-- 瓶颈 -->
+      <rect x="-6" y="-35" width="12" height="10" rx="2"/>
+      
+      <!-- 瓶盖 -->
+      <line x1="-8" y1="-38" x2="8" y2="-38" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    
+    <!-- 简约液体指示 -->
+    <rect x="-12" y="-5" width="24" height="20" rx="2" fill="url(#minimalGold)" opacity="0.6">
+      <animate attributeName="opacity" values="0.4;0.8;0.4" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    
+    <!-- 简约炼金术符号 -->
+    <g stroke="url(#minimalGold)" stroke-width="2" fill="none">
+      <!-- 外圈 -->
+      <circle cx="0" cy="0" r="35" opacity="0.5"/>
+      
+      <!-- 简化三角 -->
+      <polygon points="0,-40 12,-28 -12,-28" opacity="0.7"/>
+      
+      <!-- 简化十字 -->
+      <line x1="0" y1="28" x2="0" y2="40" opacity="0.7"/>
+      <line x1="-6" y1="34" x2="6" y2="34" opacity="0.7"/>
+    </g>
+    
+    <!-- 简约装饰点 -->
+    <g fill="url(#minimalGold)">
+      <circle cx="25" cy="-25" r="2" opacity="0.6"/>
+      <circle cx="-25" cy="-25" r="2" opacity="0.6"/>
+      <circle cx="25" cy="25" r="2" opacity="0.6"/>
+      <circle cx="-25" cy="25" r="2" opacity="0.6"/>
+    </g>
+  </g>
+  
+  <!-- 简约边框装饰 -->
+  <rect x="4" y="4" width="120" height="120" rx="16" stroke="url(#minimalBlue)" stroke-width="1" fill="none" opacity="0.3"/>
+</svg>

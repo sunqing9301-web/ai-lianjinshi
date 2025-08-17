@@ -1,0 +1,104 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffb300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6f00;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="techGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0080ff;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="40%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ffd700;stop-opacity:0" />
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <circle cx="64" cy="64" r="60" fill="url(#bgGrad4)" stroke="url(#goldGrad4)" stroke-width="2"/>
+  
+  <!-- 中心发光 -->
+  <circle cx="64" cy="64" r="45" fill="url(#centerGlow)"/>
+  
+  <!-- 主要设计元素 -->
+  <g transform="translate(64,64)">
+    <!-- 立体炼金术三角 -->
+    <g filter="url(#glow)">
+      <!-- 三角形主体 -->
+      <polygon points="0,-28 24,16 -24,16" fill="url(#goldGrad4)" stroke="#fff" stroke-width="1"/>
+      <!-- 三角形阴影面 -->
+      <polygon points="24,16 0,-28 4,-24" fill="#cc8400" opacity="0.7"/>
+    </g>
+    
+    <!-- 3D AI处理器 -->
+    <g>
+      <!-- 处理器主体 -->
+      <rect x="-20" y="-8" width="40" height="16" rx="4" fill="url(#techGrad4)" stroke="#fff" stroke-width="1"/>
+      <!-- 处理器顶面 -->
+      <rect x="-18" y="-10" width="36" height="14" rx="3" fill="#40c4ff" opacity="0.8"/>
+      <!-- 处理器核心 -->
+      <rect x="-15" y="-5" width="30" height="10" rx="2" fill="#0277bd"/>
+      
+      <!-- 处理器引脚 3D效果 -->
+      <g fill="url(#techGrad4)">
+        <!-- 左侧引脚 -->
+        <rect x="-26" y="-3" width="6" height="2" rx="1"/>
+        <rect x="-26" y="0" width="6" height="2" rx="1"/>
+        <rect x="-26" y="3" width="6" height="2" rx="1"/>
+        
+        <!-- 右侧引脚 -->
+        <rect x="20" y="-3" width="6" height="2" rx="1"/>
+        <rect x="20" y="0" width="6" height="2" rx="1"/>
+        <rect x="20" y="3" width="6" height="2" rx="1"/>
+        
+        <!-- 上下引脚 -->
+        <rect x="-3" y="-14" width="2" height="6" rx="1"/>
+        <rect x="0" y="-14" width="2" height="6" rx="1"/>
+        <rect x="3" y="-14" width="2" height="6" rx="1"/>
+        
+        <rect x="-3" y="8" width="2" height="6" rx="1"/>
+        <rect x="0" y="8" width="2" height="6" rx="1"/>
+        <rect x="3" y="8" width="2" height="6" rx="1"/>
+      </g>
+    </g>
+    
+    <!-- 能量环 -->
+    <circle cx="0" cy="0" r="35" fill="none" stroke="url(#goldGrad4)" stroke-width="1.5" opacity="0.6" stroke-dasharray="5,3"/>
+    
+    <!-- 数据流粒子 -->
+    <g fill="url(#techGrad4)" opacity="0.8">
+      <circle cx="-30" cy="0" r="1.5">
+        <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="30" cy="0" r="1.5">
+        <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="0" cy="-30" r="1.5">
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="0" cy="30" r="1.5">
+        <animate attributeName="opacity" values="1;0.5;1" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+  
+  <!-- 装饰性科技元素 -->
+  <g stroke="url(#techGrad4)" stroke-width="1" fill="none" opacity="0.4">
+    <path d="M15,15 L25,25 M25,15 L15,25"/>
+    <path d="M103,15 L113,25 M113,15 L103,25"/>
+    <path d="M15,103 L25,113 M25,103 L15,113"/>
+    <path d="M103,103 L113,113 M113,103 L103,113"/>
+  </g>
+</svg>

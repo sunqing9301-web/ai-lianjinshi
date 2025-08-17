@@ -1,0 +1,66 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d47a1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976d2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffeb3b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="techGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0091ea;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景六边形 -->
+  <polygon points="64,8 100,32 100,96 64,120 28,96 28,32" fill="url(#bgGrad2)" stroke="url(#goldGrad2)" stroke-width="2"/>
+  
+  <!-- 内部装饰六边形 -->
+  <polygon points="64,20 88,36 88,92 64,108 40,92 40,36" fill="none" stroke="url(#goldGrad2)" stroke-width="1" opacity="0.5"/>
+  
+  <!-- 中心炼金术三角 -->
+  <g transform="translate(64,64)">
+    <!-- 主三角形 -->
+    <polygon points="0,-25 22,15 -22,15" fill="url(#goldGrad2)" stroke="#fff" stroke-width="1.5"/>
+    
+    <!-- AI处理器核心 -->
+    <rect x="-15" y="-8" width="30" height="16" rx="3" fill="url(#techGrad)" opacity="0.9"/>
+    
+    <!-- 处理器细节 -->
+    <rect x="-12" y="-5" width="24" height="10" rx="2" fill="#1565c0"/>
+    <rect x="-10" y="-3" width="20" height="6" rx="1" fill="#0d47a1"/>
+    
+    <!-- 数据流线条 -->
+    <g stroke="url(#techGrad)" stroke-width="1.5" fill="none" opacity="0.8">
+      <path d="M-20,-2 Q-25,0 -20,2"/>
+      <path d="M20,-2 Q25,0 20,2"/>
+      <path d="M-2,-12 Q0,-17 2,-12"/>
+      <path d="M-2,12 Q0,17 2,12"/>
+    </g>
+    
+    <!-- 能量点 -->
+    <circle cx="-18" cy="0" r="2" fill="url(#goldGrad2)"/>
+    <circle cx="18" cy="0" r="2" fill="url(#goldGrad2)"/>
+    <circle cx="0" cy="-14" r="2" fill="url(#goldGrad2)"/>
+    <circle cx="0" cy="14" r="2" fill="url(#goldGrad2)"/>
+  </g>
+  
+  <!-- 角落装饰元素 -->
+  <g fill="url(#goldGrad2)" opacity="0.4">
+    <circle cx="20" cy="20" r="3"/>
+    <circle cx="108" cy="20" r="2"/>
+    <circle cx="20" cy="108" r="2"/>
+    <circle cx="108" cy="108" r="3"/>
+  </g>
+  
+  <!-- 科技感线条 -->
+  <g stroke="url(#techGrad)" stroke-width="1" fill="none" opacity="0.3">
+    <line x1="30" y1="30" x2="40" y2="40"/>
+    <line x1="98" y1="30" x2="88" y2="40"/>
+    <line x1="30" y1="98" x2="40" y2="88"/>
+    <line x1="98" y1="98" x2="88" y2="88"/>
+  </g>
+</svg>

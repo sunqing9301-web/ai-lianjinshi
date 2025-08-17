@@ -1,0 +1,83 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="designerGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8F00;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="designerAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0277BD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#01579B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 极简背景 -->
+  <rect width="128" height="128" rx="24" fill="#1A1A1A"/>
+  
+  <!-- 主设计元素 -->
+  <g transform="translate(64,64)">
+    <!-- 设计师风格的几何三角 -->
+    <path d="M0,-40 L36,28 L-36,28 Z" fill="url(#designerGold)" opacity="0.9"/>
+    
+    <!-- 负空间设计 -->
+    <path d="M0,-32 L28,20 L-28,20 Z" fill="#1A1A1A"/>
+    
+    <!-- 精致的AI元素 -->
+    <g transform="translate(0,-6)">
+      <!-- 主处理单元 -->
+      <rect x="-32" y="-4" width="64" height="8" rx="4" fill="url(#designerAccent)"/>
+      
+      <!-- 高级表面处理 -->
+      <rect x="-28" y="-2" width="56" height="4" rx="2" fill="#FFFFFF" opacity="0.95"/>
+      
+      <!-- 精密连接点 -->
+      <g fill="url(#designerAccent)">
+        <circle cx="-36" cy="0" r="2"/>
+        <circle cx="36" cy="0" r="2"/>
+        <circle cx="-40" cy="0" r="1" opacity="0.6"/>
+        <circle cx="40" cy="0" r="1" opacity="0.6"/>
+      </g>
+      
+      <!-- 数据流可视化 -->
+      <g fill="url(#designerGold)">
+        <rect x="-24" y="-1" width="2" height="2" rx="1" opacity="0.7">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="-18" y="-1" width="4" height="2" rx="1" opacity="0.9">
+          <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="-10" y="-1" width="2" height="2" rx="1" opacity="0.6">
+          <animate attributeName="opacity" values="0.2;1;0.2" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="8" y="-1" width="4" height="2" rx="1" opacity="0.8">
+          <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" begin="0.9s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="16" y="-1" width="2" height="2" rx="1" opacity="0.7">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" begin="1.2s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="22" y="-1" width="2" height="2" rx="1" opacity="0.5">
+          <animate attributeName="opacity" values="0.2;1;0.2" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+        </rect>
+      </g>
+    </g>
+    
+    <!-- 设计师级装饰环 -->
+    <circle cx="0" cy="0" r="48" fill="none" stroke="url(#designerGold)" stroke-width="0.5" opacity="0.2"/>
+    <circle cx="0" cy="0" r="52" fill="none" stroke="url(#designerGold)" stroke-width="0.3" opacity="0.1" stroke-dasharray="2,8"/>
+  </g>
+  
+  <!-- 极简装饰元素 -->
+  <g stroke="url(#designerGold)" stroke-width="1" fill="none" opacity="0.3">
+    <line x1="20" y1="20" x2="32" y2="20"/>
+    <line x1="96" y1="20" x2="108" y2="20"/>
+    <line x1="20" y1="108" x2="32" y2="108"/>
+    <line x1="96" y1="108" x2="108" y2="108"/>
+  </g>
+  
+  <!-- 品牌识别点 -->
+  <g fill="url(#designerGold)" opacity="0.4">
+    <circle cx="24" cy="24" r="1"/>
+    <circle cx="104" cy="24" r="1"/>
+    <circle cx="24" cy="104" r="1"/>
+    <circle cx="104" cy="104" r="1"/>
+  </g>
+</svg>

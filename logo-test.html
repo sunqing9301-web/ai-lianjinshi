@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+            text-align: center;
+        }
+        .logo-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .logo {
+            width: 128px;
+            height: 128px;
+            border: 2px solid #ddd;
+            margin: 10px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI炼金师 Logo 测试页面</h1>
+    
+    <div class="logo-container">
+        <h2>主Logo测试</h2>
+        <img src="logo.svg" alt="AI炼金师主Logo" class="logo" 
+             onload="document.getElementById('status1').innerHTML='✅ logo.svg 加载成功!'; document.getElementById('status1').className='success';"
+             onerror="document.getElementById('status1').innerHTML='❌ logo.svg 加载失败!'; document.getElementById('status1').className='error';">
+        <p id="status1">正在加载...</p>
+    </div>
+    
+    <div class="logo-container">
+        <h2>小图标测试</h2>
+        <img src="icon-48.svg" alt="AI炼金师小图标" class="logo" 
+             onload="document.getElementById('status2').innerHTML='✅ icon-48.svg 加载成功!'; document.getElementById('status2').className='success';"
+             onerror="document.getElementById('status2').innerHTML='❌ icon-48.svg 加载失败!'; document.getElementById('status2').className='error';">
+        <p id="status2">正在加载...</p>
+    </div>
+    
+    <div class="logo-container">
+        <h2>神秘炼金师测试</h2>
+        <img src="logo-alchemist-mystical.svg" alt="神秘炼金师Logo" class="logo" 
+             onload="document.getElementById('status3').innerHTML='✅ logo-alchemist-mystical.svg 加载成功!'; document.getElementById('status3').className='success';"
+             onerror="document.getElementById('status3').innerHTML='❌ logo-alchemist-mystical.svg 加载失败!'; document.getElementById('status3').className='error';">
+        <p id="status3">正在加载...</p>
+    </div>
+    
+    <div class="logo-container">
+        <h2>文件列表</h2>
+        <p>如果图片无法显示，请检查以下文件是否存在：</p>
+        <ul style="text-align: left; display: inline-block;">
+            <li>logo.svg</li>
+            <li>icon-48.svg</li>
+            <li>logo-alchemist-mystical.svg</li>
+            <li>logo-preview.html</li>
+        </ul>
+    </div>
+    
+    <script>
+        // 检查文件是否存在
+        function checkFile(filename, statusId) {
+            fetch(filename)
+                .then(response => {
+                    if (response.ok) {
+                        console.log(`✅ ${filename} 文件存在`);
+                    } else {
+                        console.log(`❌ ${filename} 文件不存在 (${response.status})`);
+                        document.getElementById(statusId).innerHTML += ` (HTTP ${response.status})`;
+                    }
+                })
+                .catch(error => {
+                    console.log(`❌ ${filename} 请求失败:`, error);
+                });
+        }
+        
+        // 页面加载完成后检查文件
+        window.onload = function() {
+            checkFile('logo.svg', 'status1');
+            checkFile('icon-48.svg', 'status2');
+            checkFile('logo-alchemist-mystical.svg', 'status3');
+        };
+    </script>
+</body>
+</html>

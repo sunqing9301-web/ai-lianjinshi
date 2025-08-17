@@ -1,0 +1,94 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="modernAlchemyGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F9A825;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F57F17;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="modernAlchemyBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E88E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1565C0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="modernAlchemyPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8E24AA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6A1B9A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="128" height="128" rx="28" fill="#0D1117"/>
+  
+  <!-- 现代炼金师设计 -->
+  <g transform="translate(64,64)">
+    <!-- 现代炼金瓶 -->
+    <g>
+      <!-- 瓶身 -->
+      <path d="M-15,-30 L15,-30 L20,-15 L20,25 Q20,32 12,32 L-12,32 Q-20,32 -20,25 L-20,-15 Z" fill="url(#modernAlchemyBlue)" opacity="0.9"/>
+      
+      <!-- 瓶颈 -->
+      <rect x="-8" y="-40" width="16" height="10" rx="3" fill="url(#modernAlchemyGold)"/>
+      
+      <!-- 现代瓶盖 -->
+      <rect x="-10" y="-44" width="20" height="4" rx="2" fill="url(#modernAlchemyGold)"/>
+      
+      <!-- 能量液体 -->
+      <path d="M-16,-10 L16,-10 L16,22 Q16,28 10,28 L-10,28 Q-16,28 -16,22 Z" fill="url(#modernAlchemyGold)" opacity="0.7">
+        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="2.5s" repeatCount="indefinite"/>
+      </path>
+      
+      <!-- 能量波纹 -->
+      <g stroke="url(#modernAlchemyGold)" stroke-width="1" fill="none" opacity="0.6">
+        <ellipse cx="0" cy="0" rx="12" ry="3">
+          <animate attributeName="ry" values="2;4;2" dur="3s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="0" cy="8" rx="10" ry="2">
+          <animate attributeName="ry" values="1;3;1" dur="3.5s" repeatCount="indefinite"/>
+        </ellipse>
+      </g>
+    </g>
+    
+    <!-- 现代炼金术符号 -->
+    <g stroke="url(#modernAlchemyPurple)" stroke-width="2" fill="none" opacity="0.8">
+      <!-- 六边形外框 -->
+      <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20"/>
+      
+      <!-- 内部几何 -->
+      <polygon points="0,-30 25,-15 25,15 0,30 -25,15 -25,-15" stroke-width="1" opacity="0.6"/>
+    </g>
+    
+    <!-- 现代元素符号 -->
+    <g fill="url(#modernAlchemyGold)" opacity="0.7">
+      <!-- 火元素 -->
+      <polygon points="-30,-35 -25,-45 -20,-35" transform="rotate(0)"/>
+      <!-- 水元素 -->
+      <polygon points="30,-35 25,-25 35,-25" transform="rotate(0)"/>
+      <!-- 土元素 -->
+      <polygon points="-30,35 -35,25 -25,25" transform="rotate(0)"/>
+      <!-- 风元素 -->
+      <polygon points="30,35 25,45 35,45" transform="rotate(0)"/>
+    </g>
+    
+    <!-- 能量粒子流 -->
+    <g fill="url(#modernAlchemyGold)">
+      <circle cx="0" cy="-50" r="1">
+        <animate attributeName="cy" values="-50;50;-50" dur="4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="-40" cy="0" r="1">
+        <animate attributeName="cx" values="-40;40;-40" dur="5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;1;0" dur="5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="40" cy="0" r="1">
+        <animate attributeName="cx" values="40;-40;40" dur="4.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;1;0" dur="4.5s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+  
+  <!-- 现代装饰元素 -->
+  <g fill="url(#modernAlchemyPurple)" opacity="0.4">
+    <rect x="16" y="16" width="8" height="2" rx="1"/>
+    <rect x="104" y="16" width="8" height="2" rx="1"/>
+    <rect x="16" y="110" width="8" height="2" rx="1"/>
+    <rect x="104" y="110" width="8" height="2" rx="1"/>
+  </g>
+</svg>

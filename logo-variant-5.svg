@@ -1,0 +1,113 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d1b69;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#11998e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f7dc6f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f4d03f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f1c40f;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="magicGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e67e22;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f39c12;stop-opacity:1" />
+    </linearGradient>
+    <filter id="roughPaper">
+      <feTurbulence baseFrequency="0.04" numOctaves="3" result="noise" seed="1"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1"/>
+    </filter>
+  </defs>
+  
+  <!-- 背景 - 手绘风格 -->
+  <path d="M20,20 Q64,15 108,20 Q113,64 108,108 Q64,113 20,108 Q15,64 20,20 Z" 
+        fill="url(#bgGrad5)" stroke="url(#goldGrad5)" stroke-width="2" filter="url(#roughPaper)"/>
+  
+  <!-- 魔法粒子背景 -->
+  <g fill="url(#goldGrad5)" opacity="0.3">
+    <circle cx="25" cy="30" r="1">
+      <animate attributeName="opacity" values="0.1;0.8;0.1" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="25" r="1.5">
+      <animate attributeName="opacity" values="0.8;0.1;0.8" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="30" cy="100" r="1">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="95" cy="95" r="1.2">
+      <animate attributeName="opacity" values="1;0.2;1" dur="3.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- 主要设计 -->
+  <g transform="translate(64,64)">
+    <!-- 魔法炼金术圆环 -->
+    <circle cx="0" cy="0" r="40" fill="none" stroke="url(#goldGrad5)" stroke-width="2" 
+            stroke-dasharray="8,4" opacity="0.7">
+      <animateTransform attributeName="transform" type="rotate" 
+                        values="0;360" dur="20s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- 内圆环 -->
+    <circle cx="0" cy="0" r="30" fill="none" stroke="url(#magicGrad)" stroke-width="1" 
+            stroke-dasharray="4,2" opacity="0.5">
+      <animateTransform attributeName="transform" type="rotate" 
+                        values="360;0" dur="15s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- 炼金术三角 - 手绘风格 -->
+    <path d="M0,-25 L22,15 Q20,17 18,15 L-18,15 Q-20,17 -22,15 Z" 
+          fill="url(#goldGrad5)" stroke="#fff" stroke-width="1.5" filter="url(#roughPaper)"/>
+    
+    <!-- AI核心 - 艺术化 -->
+    <g>
+      <!-- 核心容器 -->
+      <ellipse cx="0" cy="0" rx="18" ry="10" fill="url(#magicGrad)" opacity="0.8"/>
+      
+      <!-- AI符号 -->
+      <text x="0" y="4" font-family="Arial, sans-serif" font-size="12" font-weight="bold" 
+            fill="#fff" text-anchor="middle">AI</text>
+      
+      <!-- 能量波纹 -->
+      <ellipse cx="0" cy="0" rx="22" ry="12" fill="none" stroke="url(#goldGrad5)" 
+               stroke-width="1" opacity="0.6">
+        <animate attributeName="rx" values="22;26;22" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="12;14;12" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+    
+    <!-- 魔法星星 -->
+    <g fill="url(#goldGrad5)" opacity="0.8">
+      <path d="M-35,-10 L-33,-8 L-35,-6 L-37,-8 Z">
+        <animateTransform attributeName="transform" type="rotate" 
+                          values="0;360" dur="4s" repeatCount="indefinite"/>
+      </path>
+      <path d="M35,10 L37,12 L35,14 L33,12 Z">
+        <animateTransform attributeName="transform" type="rotate" 
+                          values="360;0" dur="3s" repeatCount="indefinite"/>
+      </path>
+      <path d="M10,-35 L12,-33 L10,-31 L8,-33 Z">
+        <animateTransform attributeName="transform" type="rotate" 
+                          values="0;360" dur="5s" repeatCount="indefinite"/>
+      </path>
+    </g>
+    
+    <!-- 炼金术符文 -->
+    <g stroke="url(#goldGrad5)" stroke-width="1" fill="none" opacity="0.4">
+      <path d="M-25,0 Q-30,-5 -25,-10"/>
+      <path d="M25,0 Q30,5 25,10"/>
+      <path d="M0,-25 Q5,-30 10,-25"/>
+      <path d="M0,25 Q-5,30 -10,25"/>
+    </g>
+  </g>
+  
+  <!-- 装饰性元素 -->
+  <g fill="url(#magicGrad)" opacity="0.5">
+    <path d="M15,64 Q20,60 25,64 Q20,68 15,64"/>
+    <path d="M103,64 Q108,60 113,64 Q108,68 103,64"/>
+    <path d="M64,15 Q60,20 64,25 Q68,20 64,15"/>
+    <path d="M64,103 Q60,108 64,113 Q68,108 64,103"/>
+  </g>
+</svg>

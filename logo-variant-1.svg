@@ -1,0 +1,49 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a237e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3949ab;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffb300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8f00;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGrad1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#ffd700;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 背景圆形 -->
+  <circle cx="64" cy="64" r="60" fill="url(#bgGrad1)" stroke="url(#goldGrad1)" stroke-width="3"/>
+  
+  <!-- 发光效果 -->
+  <circle cx="64" cy="64" r="50" fill="url(#glowGrad1)"/>
+  
+  <!-- 炼金术符号 - 简化版 -->
+  <g transform="translate(64,64)">
+    <!-- 外圆环 -->
+    <circle cx="0" cy="0" r="35" fill="none" stroke="url(#goldGrad1)" stroke-width="2" opacity="0.7"/>
+    
+    <!-- 核心三角形 -->
+    <polygon points="0,-20 17,10 -17,10" fill="url(#goldGrad1)" stroke="#fff" stroke-width="1"/>
+    
+    <!-- AI芯片图案 -->
+    <rect x="-12" y="-5" width="24" height="10" rx="2" fill="#4fc3f7" opacity="0.9"/>
+    <rect x="-8" y="-2" width="16" height="4" rx="1" fill="#29b6f6"/>
+    
+    <!-- 连接线 -->
+    <line x1="-15" y1="0" x2="-12" y2="0" stroke="#4fc3f7" stroke-width="1"/>
+    <line x1="12" y1="0" x2="15" y2="0" stroke="#4fc3f7" stroke-width="1"/>
+    <line x1="0" y1="-8" x2="0" y2="-5" stroke="#4fc3f7" stroke-width="1"/>
+    <line x1="0" y1="5" x2="0" y2="8" stroke="#4fc3f7" stroke-width="1"/>
+  </g>
+  
+  <!-- 装饰性星星 -->
+  <g fill="url(#goldGrad1)" opacity="0.6">
+    <polygon points="20,25 22,30 27,30 23,33 25,38 20,35 15,38 17,33 13,30 18,30" transform="scale(0.6)"/>
+    <polygon points="100,20 102,25 107,25 103,28 105,33 100,30 95,33 97,28 93,25 98,25" transform="scale(0.5)"/>
+    <polygon points="110,90 112,95 117,95 113,98 115,103 110,100 105,103 107,98 103,95 108,95" transform="scale(0.4)"/>
+  </g>
+</svg>

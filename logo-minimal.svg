@@ -1,0 +1,13 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="128" height="128" rx="24" fill="#34495e"/>
+  
+  <!-- 炼金术三角 -->
+  <polygon points="64,32 88,72 40,72" fill="#f1c40f"/>
+  
+  <!-- AI标识 -->
+  <rect x="52" y="60" width="24" height="8" rx="4" fill="#3498db"/>
+  
+  <!-- 简单装饰点 -->
+  <circle cx="64" cy="96" r="3" fill="#f1c40f" opacity="0.6"/>
+</svg>
