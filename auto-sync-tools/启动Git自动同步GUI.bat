@@ -16,18 +16,23 @@ if not exist "auto-sync-tools" (
     exit 1
 )
 
-:: 检查GUI启动器文件
-if not exist "auto-sync-tools\启动Git自动同步GUI.bat" (
-    echo ❌ GUI启动器文件不存在
-    echo 请确保GUI启动器文件在auto-sync-tools文件夹中
-    pause
-    exit 1
-)
+:: 切换到auto-sync-tools目录
+cd auto-sync-tools
 
-:: 调用auto-sync-tools文件夹中的GUI启动器
-echo 正在调用GUI应用...
-call "auto-sync-tools\启动Git自动同步GUI.bat"
+:: 启动GUI应用
+echo 启动中，请稍候...
+powershell -ExecutionPolicy Bypass -File "GitAutoSync-Simple.ps1"
+
+if %errorlevel% equ 0 (
+    echo.
+    echo ✅ GUI应用已正常关闭
+) else (
+    echo.
+    echo ❌ GUI应用运行出错
+)
 
 echo.
 echo 返回项目根目录...
+cd ..
+
 pause 
