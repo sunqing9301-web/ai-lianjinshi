@@ -26,7 +26,7 @@ function Write-Log {
 function Handle-Error {
     param([string]$Operation, [int]$ExitCode)
     if ($ExitCode -ne 0) {
-        Write-Log "操作失败: $Operation (退出代码: $ExitCode)" "ERROR"
+        Write-Log "Operation failed: $Operation (Exit code: $ExitCode)" "ERROR"
         return $false
     }
     return $true
@@ -34,10 +34,10 @@ function Handle-Error {
 
 # 主同步函数
 function Sync-Repository {
-    Write-Log "开始Git仓库自动同步"
-    Write-Log "仓库路径: $RepoPath"
-    Write-Log "远程仓库: $Remote"
-    Write-Log "分支: $Branch"
+    Write-Log "Starting Git repository auto sync"
+    Write-Log "Repository path: $RepoPath"
+    Write-Log "Remote: $Remote"
+    Write-Log "Branch: $Branch"
     
     # 切换到仓库目录
     Set-Location $RepoPath
@@ -46,7 +46,7 @@ function Sync-Repository {
     $gitStatus = git status --porcelain 2>&1
     if ($LASTEXITCODE -eq 0) {
         if ($gitStatus) {
-            Write-Log "发现本地更改，正在自动提交..."
+            Write-Log "Found local changes, auto-committing..."
             
             # 添加所有更改
             git add .
@@ -57,41 +57,41 @@ function Sync-Repository {
             git commit -m $commitMessage
             if (-not (Handle-Error "git commit" $LASTEXITCODE)) { return $false }
             
-            Write-Log "本地更改已自动提交"
+            Write-Log "Local changes auto-committed"
         } else {
-            Write-Log "没有本地更改需要提交"
+            Write-Log "No local changes to commit"
         }
     } else {
-        Write-Log "Git状态检查失败" "ERROR"
+        Write-Log "Git status check failed" "ERROR"
         return $false
     }
     
     # 拉取远程更新
-    Write-Log "拉取远程更新..."
+    Write-Log "Pulling remote updates..."
     git pull $Remote $Branch
     if (-not (Handle-Error "git pull" $LASTEXITCODE)) {
-        Write-Log "远程更新拉取失败，可能存在冲突" "WARNING"
+        Write-Log "Remote pull failed, may have conflicts" "WARNING"
         # 尝试使用rebase方式
-        Write-Log "尝试使用rebase方式拉取..."
+        Write-Log "Trying rebase pull..."
         git pull --rebase $Remote $Branch
         if (-not (Handle-Error "git pull --rebase" $LASTEXITCODE)) {
-            Write-Log "rebase也失败，需要手动处理冲突" "ERROR"
+            Write-Log "Rebase also failed, manual conflict resolution needed" "ERROR"
             return $false
         }
     }
     
-    Write-Log "远程更新拉取成功"
+    Write-Log "Remote updates pulled successfully"
     
     # 推送本地更改
-    Write-Log "推送本地更改..."
+    Write-Log "Pushing local changes..."
     git push $Remote $Branch
     if (-not (Handle-Error "git push" $LASTEXITCODE)) {
-        Write-Log "推送失败，可能需要配置身份验证" "ERROR"
+        Write-Log "Push failed, authentication may be needed" "ERROR"
         return $false
     }
     
-    Write-Log "本地更改推送成功"
-    Write-Log "Git仓库同步完成"
+    Write-Log "Local changes pushed successfully"
+    Write-Log "Git repository sync completed"
     return $true
 }
 
@@ -99,13 +99,13 @@ function Sync-Repository {
 try {
     $success = Sync-Repository
     if ($success) {
-        Write-Log "同步操作成功完成"
+        Write-Log "Sync operation completed successfully"
         exit 0
     } else {
-        Write-Log "同步操作失败" "ERROR"
+        Write-Log "Sync operation failed" "ERROR"
         exit 1
     }
 } catch {
-    Write-Log "同步过程中发生异常: $($_.Exception.Message)" "ERROR"
+    Write-Log "Exception during sync: $($_.Exception.Message)" "ERROR"
     exit 1
 } 
