@@ -258,21 +258,33 @@ class APIManager {
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         const req = { url, options: { ...options, signal: undefined } };
         try {
-            // 通过后台代理解决CORS
+            // 通过后台长连接代理解决CORS与SW回收
+            const port = chrome.runtime.connect({ name: 'proxy' });
+            const reqId = `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
             const proxyResp = await new Promise((resolve) => {
-                chrome.runtime.sendMessage({ action: 'proxyFetch', request: req }, resolve);
+                const onMsg = (msg) => {
+                    if (msg && msg.id === reqId) {
+                        port.onMessage.removeListener(onMsg);
+                        port.disconnect();
+                        resolve(msg);
+                    }
+                };
+                port.onMessage.addListener(onMsg);
+                port.postMessage({ type: 'proxyFetch', id: reqId, request: req });
+                // 超时回退
+                setTimeout(() => {
+                    try { port.onMessage.removeListener(onMsg); port.disconnect(); } catch (_) {}
+                    resolve({ success: false, error: '代理请求超时' });
+                }, timeout);
             });
             clearTimeout(timeoutId);
             if (!proxyResp || !proxyResp.success) {
                 throw new Error(proxyResp?.error || '代理请求失败');
             }
-            // 构造类 Response 对象的简化封装
             return {
                 ok: proxyResp.ok,
                 status: proxyResp.status,
-                headers: {
-                    get: (k) => proxyResp.headers?.[k.toLowerCase()] || null
-                },
+                headers: { get: (k) => proxyResp.headers?.[k.toLowerCase()] || null },
                 json: async () => JSON.parse(proxyResp.body || '{}'),
                 text: async () => proxyResp.body || ''
             };
