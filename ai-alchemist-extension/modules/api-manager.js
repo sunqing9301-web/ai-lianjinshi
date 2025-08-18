@@ -167,66 +167,49 @@ class APIManager {
      */
     static async callBailianAPI(apiKey, prompt, options = {}) {
         const cacheKey = `bailian_${this.hashString(prompt)}`;
-        
-        // 检查缓存
         if (this.cache.has(cacheKey) && !options.skipCache) {
             console.log('🎯 使用百炼缓存结果');
             return this.cache.get(cacheKey);
         }
-        
-        // 检查速率限制
         if (this.isRateLimited('bailian')) {
             throw new Error('百炼API调用过于频繁，请稍后重试');
         }
-        
+
+        // 兼容模式（OpenAI Chat Completions）与旧版一致
         const requestData = {
-            model: options.model || 'qwen-plus',
-            input: {
-                messages: [
-                    {
-                        role: 'system',
-                        content: options.systemPrompt || '你是一个专业的产品信息优化助手，请根据用户提供的产品信息进行优化。'
-                    },
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ]
-            },
-            parameters: {
-                max_tokens: options.maxTokens || 2000,
-                temperature: options.temperature || 0.7
-            }
+            model: options.model || 'deepseek-r1',
+            messages: [
+                {
+                    role: 'system',
+                    content: options.systemPrompt || '你是一个专业的产品信息优化助手，请根据用户提供的产品信息进行优化。'
+                },
+                { role: 'user', content: prompt }
+            ],
+            max_tokens: options.maxTokens || 2000,
+            temperature: options.temperature || 0.7,
+            stream: false
         };
-        
+
         try {
             this.updateRateLimit('bailian');
-            
-            const response = await this.makeRequest('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
+            const response = await this.makeRequest('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                    'X-DashScope-SSE': 'disable'
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify(requestData)
             }, options.timeout);
-            
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(`百炼API错误 (${response.status}): ${errorData.message || response.statusText}`);
             }
-            
+
             const data = await response.json();
-            const result = data.output?.text;
-            
-            if (!result) {
-                throw new Error('百炼API返回数据格式异常');
-            }
-            
-            // 缓存结果
+            const result = data.choices?.[0]?.message?.content;
+            if (!result) throw new Error('百炼API返回数据格式异常');
             this.cache.set(cacheKey, result);
-            
             return result;
         } catch (error) {
             console.error('百炼API调用失败:', error);
