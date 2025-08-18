@@ -57,19 +57,10 @@ class APIManager {
         const temperature = typeof options.temperature === 'number' ? options.temperature : 0.7;
         const timeout = typeof options.timeout === 'number' ? options.timeout : this.defaultTimeoutMs;
 
-        // 优先走后台直调，保持更高稳定性
-        try {
-            const content = await this.callAIInBackground(platform, prompt, { maxTokens, temperature, timeout });
-            if (content) return content;
-        } catch (e) {
-            console.warn('[APIManager] 后台直调失败，降级到前台代理:', e?.message || e);
-        }
-
-        // 降级到前台代理
-        if (platform === 'deepseek') return await this.callDeepSeek(apiKey, prompt, { maxTokens, temperature, timeout });
-        if (platform === 'tongyi') return await this.callTongyi(apiKey, prompt, { maxTokens, temperature, timeout });
-        if (platform === 'bailian') return await this.callBailian(apiKey, prompt, { maxTokens, temperature, timeout });
-        throw new Error('不支持的AI平台');
+        // 仅后台直调，不做前台降级
+        const content = await this.callAIInBackground(platform, prompt, { maxTokens, temperature, timeout });
+        if (!content) throw new Error('后台未返回内容');
+        return content;
     }
 
     static async callAIInBackground(platform, prompt, options) {
