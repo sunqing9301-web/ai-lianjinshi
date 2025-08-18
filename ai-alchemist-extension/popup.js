@@ -1,4 +1,4 @@
-console.log('AI炼金师 - 产品优化专家 popup v2.0.44 已加载');
+console.log('AI炼金师 - 产品优化专家 popup v2.0.45 已加载');
 
 // 全局变量
 let currentConfig = {};
