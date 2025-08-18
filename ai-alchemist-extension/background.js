@@ -1,6 +1,6 @@
 /**
  * AI炼金师 - 产品优化专家 Background Service Worker
- * @version 2.0.42
+ * @version 2.0.43
  */
 
 console.log('🚀 AI炼金师 Background Service Worker 启动');
@@ -86,6 +86,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'proxyFetch':
             handleProxyFetch(request.request, sendResponse);
             return true;
+        case 'callAI':
+            handleCallAI(request.platform, request.prompt, request.options || {}, sendResponse);
+            return true;
             
         default:
             console.warn('⚠️ 未知消息类型:', request.action);
@@ -97,16 +100,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.runtime.onConnect.addListener((port) => {
     if (port.name !== 'proxy') return;
     port.onMessage.addListener(async (msg) => {
-        if (!msg || msg.type !== 'proxyFetch' || !msg.id) return;
-        const req = msg.request || {};
-        try {
-            const response = await fetch(req.url, req.options || {});
-            const text = await response.text();
-            const headersObj = {};
-            response.headers.forEach((v, k) => { headersObj[k] = v; });
-            port.postMessage({ id: msg.id, success: true, ok: response.ok, status: response.status, headers: headersObj, body: text });
-        } catch (error) {
-            port.postMessage({ id: msg.id, success: false, error: error?.message || String(error) });
+        if (!msg || !msg.id) return;
+        if (msg.type === 'proxyFetch') {
+            const req = msg.request || {};
+            try {
+                const response = await fetch(req.url, req.options || {});
+                const text = await response.text();
+                const headersObj = {};
+                response.headers.forEach((v, k) => { headersObj[k] = v; });
+                port.postMessage({ id: msg.id, success: true, ok: response.ok, status: response.status, headers: headersObj, body: text });
+            } catch (error) {
+                port.postMessage({ id: msg.id, success: false, error: error?.message || String(error) });
+            }
+        } else if (msg.type === 'callAI') {
+            try {
+                const { platform, prompt, options } = msg;
+                const content = await callAIBackground(platform, prompt, options || {});
+                port.postMessage({ id: msg.id, success: true, content });
+            } catch (error) {
+                port.postMessage({ id: msg.id, success: false, error: error?.message || String(error) });
+            }
         }
     });
 });
@@ -265,6 +278,92 @@ function migrateConfig(oldConfig) {
     }
     
     return newConfig;
+}
+
+// ========= 后台直调AI =========
+async function handleCallAI(platform, prompt, options, sendResponse) {
+    try {
+        const content = await callAIBackground(platform, prompt, options || {});
+        sendResponse({ success: true, content });
+    } catch (error) {
+        sendResponse({ success: false, error: error?.message || String(error) });
+    }
+}
+
+async function callAIBackground(platform, prompt, options) {
+    const apiKey = await getApiKey(platform);
+    if (!apiKey) throw new Error(`${platform} API密钥未配置`);
+    const timeout = options.timeout || 30000;
+    if (platform === 'deepseek') return await callDeepSeekBG(apiKey, prompt, options, timeout);
+    if (platform === 'tongyi') return await callTongyiBG(apiKey, prompt, options, timeout);
+    if (platform === 'bailian') return await callBailianBG(apiKey, prompt, options, timeout);
+    throw new Error('不支持的AI平台');
+}
+
+async function getApiKey(platform) {
+    const result = await chrome.storage.local.get('ozonOptimizerConfig');
+    const cfg = result.ozonOptimizerConfig || {};
+    return cfg.api && cfg.api[platform] ? (cfg.api[platform].apiKey || '') : '';
+}
+
+async function fetchJSONWithTimeout(url, init, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, { ...(init || {}), signal: controller.signal });
+        const text = await res.text();
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        try { return JSON.parse(text); } catch { throw new Error('API返回非JSON'); }
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+async function callDeepSeekBG(apiKey, prompt, options, timeout) {
+    const body = {
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: options.maxTokens || 2000,
+        temperature: typeof options.temperature === 'number' ? options.temperature : 0.7
+    };
+    const data = await fetchJSONWithTimeout('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify(body)
+    }, timeout);
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('DeepSeek 返回格式错误');
+    return data.choices[0].message.content;
+}
+
+async function callTongyiBG(apiKey, prompt, options, timeout) {
+    const body = {
+        model: 'qwen-turbo',
+        input: { messages: [{ role: 'user', content: prompt }] },
+        parameters: { max_tokens: options.maxTokens || 2000, temperature: typeof options.temperature === 'number' ? options.temperature : 0.7 }
+    };
+    const data = await fetchJSONWithTimeout('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify(body)
+    }, timeout);
+    if (!data.output || !data.output.choices || !data.output.choices[0] || !data.output.choices[0].message) throw new Error('通义千问 返回格式错误');
+    return data.output.choices[0].message.content;
+}
+
+async function callBailianBG(apiKey, prompt, options, timeout) {
+    const body = {
+        model: 'deepseek-r1',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: options.maxTokens || 2000,
+        temperature: typeof options.temperature === 'number' ? options.temperature : 0.7
+    };
+    const data = await fetchJSONWithTimeout('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify(body)
+    }, timeout);
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) throw new Error('阿里云百炼 返回格式错误');
+    return data.choices[0].message.content;
 }
 
 // 检查是否是支持的网站
