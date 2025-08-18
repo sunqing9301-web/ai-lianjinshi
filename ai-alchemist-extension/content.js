@@ -4,7 +4,7 @@
  */
 
 // 启动日志
-console.log('🚀 AI炼金师 - 产品优化专家 v2.0.4 启动中...');
+console.log('🚀 AI炼金师 - 产品优化专家 v2.0.5 启动中...');
 
 // 模块列表 - 按依赖顺序排列
 const modules = [
@@ -169,37 +169,37 @@ class OzonOptimizerApp {
         try {
             const moduleInitPromises = [];
             
-            // 初始化性能监控
-            if (window.PerformanceMonitor) {
+            // 初始化性能监控（存在才调用，统一用 Promise.resolve 包装）
+            if (window.PerformanceMonitor?.enable) {
                 moduleInitPromises.push(
-                    window.PerformanceMonitor.enable().catch(e => 
+                    Promise.resolve(window.PerformanceMonitor.enable()).catch(e => 
                         console.warn('⚠️ 性能监控初始化失败:', e)
                     )
                 );
             }
             
             // 初始化错误处理
-            if (window.ErrorHandler && window.ErrorHandler.init) {
+            if (window.ErrorHandler?.init) {
                 moduleInitPromises.push(
-                    window.ErrorHandler.init().catch(e => 
+                    Promise.resolve(window.ErrorHandler.init()).catch(e => 
                         console.warn('⚠️ 错误处理初始化失败:', e)
                     )
                 );
             }
             
             // 初始化配置管理
-            if (window.ConfigManager && window.ConfigManager.init) {
+            if (window.ConfigManager?.init) {
                 moduleInitPromises.push(
-                    window.ConfigManager.init().catch(e => 
+                    Promise.resolve(window.ConfigManager.init()).catch(e => 
                         console.warn('⚠️ 配置管理初始化失败:', e)
                     )
                 );
             }
             
             // 初始化API管理
-            if (window.APIManager && window.APIManager.init) {
+            if (window.APIManager?.init) {
                 moduleInitPromises.push(
-                    window.APIManager.init().catch(e => 
+                    Promise.resolve(window.APIManager.init()).catch(e => 
                         console.warn('⚠️ API管理初始化失败:', e)
                     )
                 );
