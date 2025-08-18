@@ -1,9 +1,9 @@
-# AI炼金师 - 产品优化专家 v2.0
+# AI炼金师 - 产品优化专家 v2.0.2
 
 🚀 **智能化产品信息转化工具** - 将普通产品信息转化为高转化率的优质内容
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
-[![Version](https://img.shields.io/badge/Version-2.0-green.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
+[![Version](https://img.shields.io/badge/Version-2.0.2-green.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
 
 ## 📋 目录
@@ -240,7 +240,7 @@ console.log(window.ozonOptimizer.getConfig());
 
 ## 📝 更新日志
 
-### v2.0.1 (2024-12-19)
+### v2.0.2 (2024-12-19)
 - 🔄 **版本更新**：统一更新所有文件中的版本号
 - 🐛 **Bug修复**：修复悬浮按钮创建问题
 - ⚡ **性能优化**：改进模块加载机制
