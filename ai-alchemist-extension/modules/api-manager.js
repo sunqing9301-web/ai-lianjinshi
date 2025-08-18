@@ -273,14 +273,26 @@ class APIManager {
     static async makeRequest(url, options, timeout = this.defaultTimeout) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
-        
+        const req = { url, options: { ...options, signal: undefined } };
         try {
-            const response = await fetch(url, {
-                ...options,
-                signal: controller.signal
+            // 通过后台代理解决CORS
+            const proxyResp = await new Promise((resolve) => {
+                chrome.runtime.sendMessage({ action: 'proxyFetch', request: req }, resolve);
             });
             clearTimeout(timeoutId);
-            return response;
+            if (!proxyResp || !proxyResp.success) {
+                throw new Error(proxyResp?.error || '代理请求失败');
+            }
+            // 构造类 Response 对象的简化封装
+            return {
+                ok: proxyResp.ok,
+                status: proxyResp.status,
+                headers: {
+                    get: (k) => proxyResp.headers?.[k.toLowerCase()] || null
+                },
+                json: async () => JSON.parse(proxyResp.body || '{}'),
+                text: async () => proxyResp.body || ''
+            };
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
