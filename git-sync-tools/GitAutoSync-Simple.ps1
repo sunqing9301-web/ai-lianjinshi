@@ -219,29 +219,170 @@ $stopSyncButton.Add_Click({
 })
 $statusTab.Controls.Add($stopSyncButton)
 
-# 手动同步按钮
-$manualSyncButton = New-Object System.Windows.Forms.Button
-$manualSyncButton.Text = "手动同步"
-$manualSyncButton.Location = New-Object System.Drawing.Point(300, 100)
-$manualSyncButton.Size = New-Object System.Drawing.Size(120, 30)
-$manualSyncButton.Add_Click({
+# 手动同步按钮组
+$manualSyncGroup = New-Object System.Windows.Forms.GroupBox
+$manualSyncGroup.Text = "手动同步选项"
+$manualSyncGroup.Location = New-Object System.Drawing.Point(20, 150)
+$manualSyncGroup.Size = New-Object System.Drawing.Size(740, 120)
+$statusTab.Controls.Add($manualSyncGroup)
+
+# 快速同步按钮
+$quickSyncButton = New-Object System.Windows.Forms.Button
+$quickSyncButton.Text = "快速同步"
+$quickSyncButton.Location = New-Object System.Drawing.Point(20, 30)
+$quickSyncButton.Size = New-Object System.Drawing.Size(100, 30)
+$quickSyncButton.BackColor = [System.Drawing.Color]::LightGreen
+$quickSyncButton.Add_Click({
     try {
         $scriptPath = Join-Path $PSScriptRoot "auto-sync.ps1"
         if (Test-Path $scriptPath) {
             $result = & $scriptPath -Silent
             if ($LASTEXITCODE -eq 0) {
-                [System.Windows.Forms.MessageBox]::Show("手动同步完成！", "成功", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+                [System.Windows.Forms.MessageBox]::Show("快速同步完成！", "成功", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
             } else {
-                [System.Windows.Forms.MessageBox]::Show("手动同步失败！", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+                [System.Windows.Forms.MessageBox]::Show("快速同步失败！", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         } else {
             [System.Windows.Forms.MessageBox]::Show("找不到同步脚本！", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         }
     } catch {
-        [System.Windows.Forms.MessageBox]::Show("手动同步时发生错误：$($_.Exception.Message)", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        [System.Windows.Forms.MessageBox]::Show("快速同步时发生错误：$($_.Exception.Message)", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
     }
 })
-$statusTab.Controls.Add($manualSyncButton)
+$manualSyncGroup.Controls.Add($quickSyncButton)
+
+# 高级同步按钮
+$advancedSyncButton = New-Object System.Windows.Forms.Button
+$advancedSyncButton.Text = "高级同步工具"
+$advancedSyncButton.Location = New-Object System.Drawing.Point(140, 30)
+$advancedSyncButton.Size = New-Object System.Drawing.Size(120, 30)
+$advancedSyncButton.BackColor = [System.Drawing.Color]::LightBlue
+$advancedSyncButton.Add_Click({
+    try {
+        $scriptPath = Join-Path $PSScriptRoot "手动同步工具.ps1"
+        if (Test-Path $scriptPath) {
+            Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`""
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("找不到高级同步工具！", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        }
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show("启动高级同步工具时发生错误：$($_.Exception.Message)", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+})
+$manualSyncGroup.Controls.Add($advancedSyncButton)
+
+# 仅推送按钮
+$pushOnlyButton = New-Object System.Windows.Forms.Button
+$pushOnlyButton.Text = "仅推送"
+$pushOnlyButton.Location = New-Object System.Drawing.Point(280, 30)
+$pushOnlyButton.Size = New-Object System.Drawing.Size(80, 30)
+$pushOnlyButton.BackColor = [System.Drawing.Color]::LightYellow
+$pushOnlyButton.Add_Click({
+    try {
+        $configPath = Join-Path $PSScriptRoot "auto-sync-config.json"
+        if (Test-Path $configPath) {
+            $config = Get-Content $configPath | ConvertFrom-Json
+            $repoPath = $config.sync.repoPath
+            $remote = $config.sync.remote
+            $branch = $config.sync.branch
+        } else {
+            $repoPath = "E:\AI炼金师-产品优化专家 (2)"
+            $remote = "origin"
+            $branch = "main"
+        }
+        
+        Set-Location $repoPath
+        git add .
+        git commit -m "Manual push: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        git push $remote $branch
+        
+        if ($LASTEXITCODE -eq 0) {
+            [System.Windows.Forms.MessageBox]::Show("推送成功！", "成功", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("推送失败！", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        }
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show("推送时发生错误：$($_.Exception.Message)", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+})
+$manualSyncGroup.Controls.Add($pushOnlyButton)
+
+# 仅拉取按钮
+$pullOnlyButton = New-Object System.Windows.Forms.Button
+$pullOnlyButton.Text = "仅拉取"
+$pullOnlyButton.Location = New-Object System.Drawing.Point(380, 30)
+$pullOnlyButton.Size = New-Object System.Drawing.Size(80, 30)
+$pullOnlyButton.BackColor = [System.Drawing.Color]::LightCoral
+$pullOnlyButton.Add_Click({
+    try {
+        $configPath = Join-Path $PSScriptRoot "auto-sync-config.json"
+        if (Test-Path $configPath) {
+            $config = Get-Content $configPath | ConvertFrom-Json
+            $repoPath = $config.sync.repoPath
+            $remote = $config.sync.remote
+            $branch = $config.sync.branch
+        } else {
+            $repoPath = "E:\AI炼金师-产品优化专家 (2)"
+            $remote = "origin"
+            $branch = "main"
+        }
+        
+        Set-Location $repoPath
+        git pull $remote $branch
+        
+        if ($LASTEXITCODE -eq 0) {
+            [System.Windows.Forms.MessageBox]::Show("拉取成功！", "成功", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("拉取失败！", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        }
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show("拉取时发生错误：$($_.Exception.Message)", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+})
+$manualSyncGroup.Controls.Add($pullOnlyButton)
+
+# 检查状态按钮
+$checkStatusButton = New-Object System.Windows.Forms.Button
+$checkStatusButton.Text = "检查状态"
+$checkStatusButton.Location = New-Object System.Drawing.Point(480, 30)
+$checkStatusButton.Size = New-Object System.Drawing.Size(100, 30)
+$checkStatusButton.BackColor = [System.Drawing.Color]::LightGray
+$checkStatusButton.Add_Click({
+    try {
+        $configPath = Join-Path $PSScriptRoot "auto-sync-config.json"
+        if (Test-Path $configPath) {
+            $config = Get-Content $configPath | ConvertFrom-Json
+            $repoPath = $config.sync.repoPath
+        } else {
+            $repoPath = "E:\AI炼金师-产品优化专家 (2)"
+        }
+        
+        Set-Location $repoPath
+        $status = git status --porcelain
+        $branch = git branch --show-current
+        
+        $message = "当前分支: $branch`n`n"
+        if ($status) {
+            $message += "本地更改:`n$status"
+        } else {
+            $message += "工作区干净，无本地更改"
+        }
+        
+        [System.Windows.Forms.MessageBox]::Show($message, "Git状态", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show("检查状态时发生错误：$($_.Exception.Message)", "错误", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    }
+})
+$manualSyncGroup.Controls.Add($checkStatusButton)
+
+# 说明标签
+$manualSyncLabel = New-Object System.Windows.Forms.Label
+$manualSyncLabel.Text = "快速同步：执行完整同步 | 高级同步：打开详细同步工具 | 仅推送：只上传本地更改 | 仅拉取：只下载远程更改 | 检查状态：查看当前Git状态"
+$manualSyncLabel.Location = New-Object System.Drawing.Point(20, 70)
+$manualSyncLabel.Size = New-Object System.Drawing.Size(700, 40)
+$manualSyncLabel.Font = New-Object System.Drawing.Font("Microsoft YaHei", 8)
+$manualSyncLabel.ForeColor = [System.Drawing.Color]::DarkGray
+$manualSyncGroup.Controls.Add($manualSyncLabel)
 
 # 日志页面
 $logTab = New-Object System.Windows.Forms.TabPage
