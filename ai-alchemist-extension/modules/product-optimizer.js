@@ -177,38 +177,108 @@ class ProductOptimizer {
             brand: '',
             sku: '',
             stock: '',
-            url: window.location.href
+            url: window.location.href,
+            sourceUrl: ''
         };
         
         try {
             // 等待页面加载完成
             await window.DOMUtils?.waitForPageLoad();
+            const isMiaoshouERP = /erp\.91miaoshou\.com/.test(location.hostname || '');
             
-            // 提取标题
-            const titleSelectors = [
-                'h1[data-widget="webProductHeading"]',
-                '.product-title',
-                'h1.product-name',
-                'h1',
-                '[data-testid="product-title"]'
-            ];
-            
-            const titleElement = await window.DOMUtils?.findElementBySelectors(titleSelectors);
-            if (titleElement) {
-                productInfo.title = titleElement.textContent.trim();
+            // 妙手ERP优先：直接从表单读取来源链接、标题、描述、分类
+            if (isMiaoshouERP) {
+                try {
+                    // 来源URL：优先标准name字段；否则任何可能的URL输入
+                    let src = '';
+                    const stdUrl = document.querySelector('input[name="sourceUrl"]');
+                    if (stdUrl && stdUrl.value) src = stdUrl.value.trim();
+                    if (!src) {
+                        const urlInputs = document.querySelectorAll('input[type="text"], input[type="url"]');
+                        for (const input of urlInputs) {
+                            const placeholder = (input.placeholder || '').toLowerCase();
+                            const value = (input.value || '').trim();
+                            if (
+                                placeholder.includes('链接') ||
+                                placeholder.includes('url') ||
+                                /https?:\/\//i.test(value)
+                            ) {
+                                src = value;
+                                break;
+                            }
+                        }
+                    }
+                    productInfo.sourceUrl = src;
+                    
+                    // 标题：通过label/span 文本包含“产品标题”定位到同一表单项内的 input
+                    if (!productInfo.title) {
+                        const labelEl = Array.from(document.querySelectorAll('label, span')).find(el => (el.textContent || '').includes('产品标题'));
+                        const input = labelEl?.closest('.el-form-item')?.querySelector('input.el-input__inner');
+                        if (input && input.value) productInfo.title = input.value.trim();
+                    }
+                    
+                    // 描述：通过label/span 文本包含“描述”定位到 textarea
+                    if (!productInfo.description) {
+                        const labelEl = Array.from(document.querySelectorAll('label, span')).find(el => (el.textContent || '').includes('描述'));
+                        const textarea = labelEl?.closest('.el-form-item')?.querySelector('textarea.el-textarea__inner');
+                        if (textarea && textarea.value) productInfo.description = textarea.value.trim();
+                    }
+                    
+                    // 分类：cascader/只读input
+                    if (!productInfo.category) {
+                        const catLabel = Array.from(document.querySelectorAll('label, span')).find(el => /产品分类|类别/.test(el.textContent || ''));
+                        let catValue = '';
+                        if (catLabel) {
+                            const formItem = catLabel.closest('.el-form-item');
+                            if (formItem) {
+                                const inputEl = formItem.querySelector('input[readonly], input.el-input__inner, .el-cascader input');
+                                if (inputEl && inputEl.value) catValue = inputEl.value.trim();
+                            }
+                        }
+                        if (!catValue) {
+                            const cascaderInput = document.querySelector('.el-cascader input, .jx-pro-input input');
+                            if (cascaderInput && cascaderInput.value) {
+                                const parentText = cascaderInput.closest('.el-form-item')?.textContent || '';
+                                if (/产品分类|类别/.test(parentText)) catValue = cascaderInput.value.trim();
+                            }
+                        }
+                        if (!catValue) {
+                            const readonlyInputs = document.querySelectorAll('input[readonly]');
+                            for (const ri of readonlyInputs) {
+                                const pt = ri.closest('.el-form-item')?.textContent || '';
+                                if (/产品分类|类别/.test(pt) && ri.value) { catValue = ri.value.trim(); break; }
+                            }
+                        }
+                        productInfo.category = catValue;
+                    }
+                } catch (e) {
+                    console.warn('ERP字段提取失败，降级到通用提取:', e);
+                }
             }
             
-            // 提取描述
-            const descriptionSelectors = [
-                '[data-widget="webProductDescription"]',
-                '.product-description',
-                '.description',
-                '[data-testid="product-description"]'
-            ];
+            // 若仍为空，再从通用页面结构提取标题
+            if (!productInfo.title) {
+                const titleSelectors = [
+                    'h1[data-widget="webProductHeading"]',
+                    '.product-title',
+                    'h1.product-name',
+                    'h1',
+                    '[data-testid="product-title"]'
+                ];
+                const titleElement = await window.DOMUtils?.findElementBySelectors(titleSelectors);
+                if (titleElement) productInfo.title = (titleElement.textContent || '').trim();
+            }
             
-            const descElement = await window.DOMUtils?.findElementBySelectors(descriptionSelectors);
-            if (descElement) {
-                productInfo.description = descElement.textContent.trim();
+            // 若仍为空，再从通用页面结构提取描述
+            if (!productInfo.description) {
+                const descriptionSelectors = [
+                    '[data-widget="webProductDescription"]',
+                    '.product-description',
+                    '.description',
+                    '[data-testid="product-description"]'
+                ];
+                const descElement = await window.DOMUtils?.findElementBySelectors(descriptionSelectors);
+                if (descElement) productInfo.description = (descElement.textContent || '').trim();
             }
             
             // 提取价格
