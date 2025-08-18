@@ -4,7 +4,7 @@
  */
 
 // 启动日志
-console.log('🚀 AI炼金师 - 产品优化专家 v2.0.13 启动中...');
+console.log('🚀 AI炼金师 - 产品优化专家 v2.0.15 启动中...');
 
 // 模块列表 - 按依赖顺序排列
 const modules = [
@@ -169,8 +169,9 @@ class OzonOptimizerApp {
         try {
             const moduleInitPromises = [];
             
-            // 初始化性能监控（存在才调用，统一用 Promise.resolve 包装）
-            if (window.PerformanceMonitor?.enable) {
+            // 初始化性能监控（仅在debug开启时）
+            const enablePerf = window.ConfigManager?.get?.('debug.enablePerformanceMonitoring', false);
+            if (enablePerf && window.PerformanceMonitor?.enable) {
                 moduleInitPromises.push(
                     Promise.resolve(window.PerformanceMonitor.enable()).catch(e => 
                         console.warn('⚠️ 性能监控初始化失败:', e)
