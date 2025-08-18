@@ -5,6 +5,7 @@
 
 class APIManager {
     static initialized = false;
+    static defaultTimeoutMs = 30000;
 
     static async init() {
         try {
@@ -27,20 +28,24 @@ class APIManager {
     static async callAPI(platform, apiKey, prompt, options = {}) {
         const maxTokens = options.maxTokens || 2000;
         const temperature = typeof options.temperature === 'number' ? options.temperature : 0.7;
+        const timeout = typeof options.timeout === 'number' ? options.timeout : this.defaultTimeoutMs;
 
         switch (platform) {
             case 'deepseek':
-                return await this.callDeepSeek(apiKey, prompt, { maxTokens, temperature });
+                console.log('[APIManager] 调用 DeepSeek...');
+                return await this.callDeepSeek(apiKey, prompt, { maxTokens, temperature, timeout });
             case 'tongyi':
-                return await this.callTongyi(apiKey, prompt, { maxTokens, temperature });
+                console.log('[APIManager] 调用 通义千问...');
+                return await this.callTongyi(apiKey, prompt, { maxTokens, temperature, timeout });
             case 'bailian':
-                return await this.callBailian(apiKey, prompt, { maxTokens, temperature });
+                console.log('[APIManager] 调用 阿里云百炼...');
+                return await this.callBailian(apiKey, prompt, { maxTokens, temperature, timeout });
             default:
                 throw new Error('不支持的AI平台');
         }
     }
 
-    static async callDeepSeek(apiKey, prompt, { maxTokens, temperature }) {
+    static async callDeepSeek(apiKey, prompt, { maxTokens, temperature, timeout }) {
         const url = 'https://api.deepseek.com/v1/chat/completions';
         const body = {
             model: 'deepseek-chat',
@@ -58,15 +63,16 @@ class APIManager {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify(body)
-        });
+        }, timeout);
 
         if (!res || !res.choices || !res.choices[0] || !res.choices[0].message) {
             throw new Error('DeepSeek API返回格式错误');
         }
+        console.log('[APIManager] DeepSeek 返回成功');
         return res.choices[0].message.content;
     }
 
-    static async callTongyi(apiKey, prompt, { maxTokens, temperature }) {
+    static async callTongyi(apiKey, prompt, { maxTokens, temperature, timeout }) {
         const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
         const body = {
             model: 'qwen-turbo',
@@ -88,15 +94,16 @@ class APIManager {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify(body)
-        });
+        }, timeout);
 
         if (!res || !res.output || !res.output.choices || !res.output.choices[0] || !res.output.choices[0].message) {
             throw new Error('通义千问 API返回格式错误');
         }
+        console.log('[APIManager] 通义千问 返回成功');
         return res.output.choices[0].message.content;
     }
 
-    static async callBailian(apiKey, prompt, { maxTokens, temperature }) {
+    static async callBailian(apiKey, prompt, { maxTokens, temperature, timeout }) {
         const url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
         const body = {
             model: 'deepseek-r1',
@@ -114,20 +121,21 @@ class APIManager {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify(body)
-        });
+        }, timeout);
 
         if (!res || !res.choices || !res.choices[0] || !res.choices[0].message) {
             throw new Error('阿里云百炼 API返回格式错误');
         }
+        console.log('[APIManager] 阿里云百炼 返回成功');
         return res.choices[0].message.content;
     }
 
     /**
      * 通过后台代理发起请求，返回文本
      */
-    static async proxyFetch(url, options) {
+    static async proxyFetch(url, options, timeoutMs) {
         // 首选通过SW代理，避免CORS
-        const response = await new Promise((resolve) => {
+        const respPromise = new Promise((resolve) => {
             try {
                 chrome.runtime.sendMessage({ action: 'proxyFetch', request: { url, options } }, (res) => {
                     resolve(res);
@@ -137,6 +145,8 @@ class APIManager {
             }
         });
 
+        const response = await this.withTimeout(respPromise, timeoutMs || this.defaultTimeoutMs).catch(() => null);
+
         if (response && response.success) {
             if (!response.ok) {
                 throw new Error(`请求失败: ${response.status}`);
@@ -145,7 +155,7 @@ class APIManager {
         }
 
         // 退化为直接fetch（在某些允许的环境中可用）
-        const direct = await fetch(url, options).catch(() => null);
+        const direct = await this.withTimeout(fetch(url, options), timeoutMs || this.defaultTimeoutMs).catch(() => null);
         if (!direct) throw new Error('网络请求失败');
         if (!direct.ok) throw new Error(`请求失败: ${direct.status}`);
         return await direct.text();
@@ -154,12 +164,25 @@ class APIManager {
     /**
      * 通过后台代理发起请求并解析为JSON
      */
-    static async proxyFetchJSON(url, options) {
-        const text = await this.proxyFetch(url, options);
+    static async proxyFetchJSON(url, options, timeoutMs) {
+        const text = await this.proxyFetch(url, options, timeoutMs);
         try {
             return JSON.parse(text);
         } catch (e) {
             throw new Error('API返回非JSON内容');
+        }
+    }
+
+    static async withTimeout(promise, timeoutMs) {
+        let timer;
+        const timeoutPromise = new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error('请求超时')), timeoutMs);
+        });
+        try {
+            const res = await Promise.race([promise, timeoutPromise]);
+            return res;
+        } finally {
+            clearTimeout(timer);
         }
     }
 }

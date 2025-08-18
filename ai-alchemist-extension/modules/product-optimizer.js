@@ -83,6 +83,9 @@ class ProductOptimizer {
             
             // 5. 解析优化结果
             const optimizationResult = this.parseOptimizationResult(optimizedContent);
+            if (!optimizationResult || (!optimizationResult.title && !optimizationResult.description)) {
+                throw new Error('AI返回内容无法解析');
+            }
             updateProgress(80, '正在应用优化结果...');
             
             // 6. 应用优化结果
@@ -137,12 +140,14 @@ class ProductOptimizer {
             
             // 显示错误通知
             if (window.UIComponents) {
-                window.UIComponents.showNotification({
-                    title: '优化失败',
-                    message: error.message || '未知错误',
-                    type: 'error',
-                    duration: 8000
-                });
+                try {
+                    window.UIComponents.showNotification({
+                        title: '优化失败',
+                        message: error.message || '未知错误',
+                        type: 'error',
+                        duration: 8000
+                    });
+                } catch (_) {}
             }
             
             // 保存失败记录
