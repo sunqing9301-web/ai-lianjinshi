@@ -57,19 +57,48 @@ class APIManager {
         const temperature = typeof options.temperature === 'number' ? options.temperature : 0.7;
         const timeout = typeof options.timeout === 'number' ? options.timeout : this.defaultTimeoutMs;
 
-        switch (platform) {
-            case 'deepseek':
-                console.log('[APIManager] 调用 DeepSeek...');
-                return await this.callDeepSeek(apiKey, prompt, { maxTokens, temperature, timeout });
-            case 'tongyi':
-                console.log('[APIManager] 调用 通义千问...');
-                return await this.callTongyi(apiKey, prompt, { maxTokens, temperature, timeout });
-            case 'bailian':
-                console.log('[APIManager] 调用 阿里云百炼...');
-                return await this.callBailian(apiKey, prompt, { maxTokens, temperature, timeout });
-            default:
-                throw new Error('不支持的AI平台');
+        // 优先走后台直调，保持更高稳定性
+        try {
+            const content = await this.callAIInBackground(platform, prompt, { maxTokens, temperature, timeout });
+            if (content) return content;
+        } catch (e) {
+            console.warn('[APIManager] 后台直调失败，降级到前台代理:', e?.message || e);
         }
+
+        // 降级到前台代理
+        if (platform === 'deepseek') return await this.callDeepSeek(apiKey, prompt, { maxTokens, temperature, timeout });
+        if (platform === 'tongyi') return await this.callTongyi(apiKey, prompt, { maxTokens, temperature, timeout });
+        if (platform === 'bailian') return await this.callBailian(apiKey, prompt, { maxTokens, temperature, timeout });
+        throw new Error('不支持的AI平台');
+    }
+
+    static async callAIInBackground(platform, prompt, options) {
+        // 通过持久端口优先
+        try {
+            this.ensurePort();
+            if (this.port) {
+                const id = `c${Date.now()}_${this.reqIdSeq++}`;
+                const msg = { type: 'callAI', id, platform, prompt, options };
+                const result = await this.withTimeout(new Promise((resolve) => {
+                    this.pending.set(id, { resolve });
+                    this.port.postMessage(msg);
+                }), options.timeout || this.defaultTimeoutMs);
+                if (result && result.success) return result.content;
+                if (result && !result.success) throw new Error(result.error || '后台调用失败');
+            }
+        } catch (e) {}
+
+        // 短消息退化
+        const result = await this.withTimeout(new Promise((resolve) => {
+            try {
+                chrome.runtime.sendMessage({ action: 'callAI', platform, prompt, options }, (res) => resolve(res));
+            } catch (e) {
+                resolve(null);
+            }
+        }), options.timeout || this.defaultTimeoutMs);
+        if (result && result.success) return result.content;
+        if (result) throw new Error(result.error || '后台调用失败');
+        throw new Error('后台未响应');
     }
 
     static async callDeepSeek(apiKey, prompt, { maxTokens, temperature, timeout }) {
