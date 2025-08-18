@@ -1,6 +1,6 @@
 /**
  * AI炼金师 - 产品优化专家 Background Service Worker
- * @version 2.0.5
+ * @version 2.0.6
  */
 
 console.log('🚀 AI炼金师 Background Service Worker 启动');
@@ -97,12 +97,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             console.log('🌐 检测到支持的网站:', tab.url);
             
             // 注入内容脚本（如果需要）
-            chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ['content.js']
-            }).catch(error => {
-                console.warn('⚠️ 内容脚本注入失败:', error);
-            });
+            // 避免重复注入：如果 manifest 已声明 content_scripts，通常不需要手动注入
+            // 如需确保最新逻辑，仍可注入但需 try/catch
+            try {
+                chrome.scripting.executeScript({
+                    target: { tabId: tabId },
+                    files: ['content.js']
+                }).catch(() => {});
+            } catch (_) {}
         }
     }
 });
