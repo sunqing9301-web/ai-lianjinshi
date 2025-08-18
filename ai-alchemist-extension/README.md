@@ -1,9 +1,9 @@
-# AI炼金师 - 产品优化专家 v2.0.2
+# AI炼金师 - 产品优化专家 v2.0.3
 
 🚀 **智能化产品信息转化工具** - 将普通产品信息转化为高转化率的优质内容
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
-[![Version](https://img.shields.io/badge/Version-2.0.2-green.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
+[![Version](https://img.shields.io/badge/Version-2.0.3-green.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/sunqing9301-web/ai-lianjinshi.git)
 
 ## 📋 目录
