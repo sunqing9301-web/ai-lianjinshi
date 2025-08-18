@@ -407,6 +407,45 @@ class OzonOptimizerApp {
         window.addEventListener('aiOptimizer:navigation', onNavigate);
         onNavigate();
     }
+
+    enableDragForHost(host, shadowRoot) {
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        const startDrag = (e) => {
+            isDragging = true;
+            const rect = host.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            e.preventDefault();
+        };
+        const onMove = (e) => {
+            if (!isDragging) return;
+            const x = e.clientX - dragOffset.x;
+            const y = e.clientY - dragOffset.y;
+            const maxX = window.innerWidth - host.offsetWidth;
+            const maxY = window.innerHeight - host.offsetHeight;
+            host.style.left = `${Math.max(0, Math.min(maxX, x))}px`;
+            host.style.top = `${Math.max(0, Math.min(maxY, y))}px`;
+            host.style.right = 'auto';
+            host.style.transform = 'none';
+        };
+        const endDrag = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            const position = {
+                x: parseInt(host.style.left || '0', 10),
+                y: parseInt(host.style.top || '0', 10)
+            };
+            if (window.ConfigManager) {
+                window.ConfigManager.set('ui.floatingButtonPosition', position);
+            }
+        };
+
+        // 监听 shadow 内元素的鼠标事件（在 wrapper 区域拖拽）
+        shadowRoot.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', endDrag);
+    }
     
     async handleOptimizeClick() {
         if (isOptimizing) {
