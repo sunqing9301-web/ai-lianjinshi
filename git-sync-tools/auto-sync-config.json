@@ -1,10 +1,11 @@
 {
     "sync": {
         "enabled": true,
-        "interval": 5,
+        "interval": 1,
         "taskName": "GitAutoSync",
-        "repoPath": "/workspace",
+        "repoPath": "E:\\AI炼金师-产品优化专家 (2)\\git",
         "remote": "origin",
+        "remoteUrl": "https://github.com/sunqing9301-web/ai-lianjinshi.git",
         "branch": "main",
         "logFile": "sync.log",
         "silent": true,
