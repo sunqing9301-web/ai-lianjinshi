@@ -59,30 +59,19 @@ class ModuleLoader {
     
     static async _loadModuleWithRetry(modulePath, attempt = 1) {
         try {
-            const script = document.createElement('script');
             const resolvedSrc = (isExtensionEnvironment() && chrome?.runtime?.getURL)
                 ? chrome.runtime.getURL(modulePath)
                 : modulePath;
-            script.src = resolvedSrc;
-            script.type = 'text/javascript';
             
-            return new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
-                    reject(new Error(`模块加载超时: ${modulePath}`));
-                }, 10000); // 10秒超时
-                
-                script.onload = () => {
-                    clearTimeout(timeout);
-                    resolve();
-                };
-                
-                script.onerror = (error) => {
-                    clearTimeout(timeout);
-                    reject(new Error(`模块加载失败: ${modulePath}`));
-                };
-                
-                document.head.appendChild(script);
+            // 通过动态 import 以 ES Modules 方式加载，避免注入到页面世界
+            const timeoutMs = 10000;
+            let timerId;
+            const importPromise = import(resolvedSrc);
+            const timeoutPromise = new Promise((_, reject) => {
+                timerId = setTimeout(() => reject(new Error(`模块加载超时: ${modulePath}`)), timeoutMs);
             });
+            await Promise.race([importPromise, timeoutPromise]);
+            clearTimeout(timerId);
         } catch (error) {
             if (attempt < this.maxRetries) {
                 console.warn(`⚠️ 模块加载失败，重试 ${attempt}/${this.maxRetries}: ${modulePath}`);
