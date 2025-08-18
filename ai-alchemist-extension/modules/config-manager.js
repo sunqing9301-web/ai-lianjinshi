@@ -47,7 +47,7 @@ class ConfigManager {
             maxCacheSize: 100
         },
         language: 'zh-CN',
-        version: '2.0.38',
+        version: '2.0.39',
         lastUpdated: null
     };
     

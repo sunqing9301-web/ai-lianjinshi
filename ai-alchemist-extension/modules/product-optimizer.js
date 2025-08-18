@@ -443,7 +443,9 @@ class ProductOptimizer {
         const packageInfoBlock = pkgParts.length > 0 ? `\n包装信息：\n${pkgParts.join('\n')}` : '';
 
         // 旧版提示词（保持不变）
-        let prompt = `你是一个专业的Ozon电商产品优化专家。请根据以下产品信息，生成优化的产品属性：\n\n产品基本信息：\n- 产品来源URL: ${productInfo.sourceUrl || productInfo.url || '未提供'}\n- 产品分类: ${productInfo.category || '未提供'}\n- 当前产品标题: ${productInfo.title || '未提供'}\n- 当前产品描述: ${productInfo.description || '未提供'}${dimensionsText}`;
+        // 对标题做额外清洗，避免混入UI噪声
+        const cleanTitle = (productInfo.title || '').replace(/\s+\d+\s*\/\s*\d+\s*$/, '').trim();
+        let prompt = `你是一个专业的Ozon电商产品优化专家。请根据以下产品信息，生成优化的产品属性：\n\n产品基本信息：\n- 产品来源URL: ${productInfo.sourceUrl || productInfo.url || '未提供'}\n- 产品分类: ${productInfo.category || '未提供'}\n- 当前产品标题: ${cleanTitle || '未提供'}\n- 当前产品描述: ${productInfo.description || '未提供'}${dimensionsText}`;
         if (packageInfoBlock) {
             prompt += packageInfoBlock;
         }
