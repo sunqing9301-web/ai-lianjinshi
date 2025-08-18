@@ -456,8 +456,8 @@ class OzonOptimizerApp {
         try {
             isOptimizing = true;
             
-            if (window.ProductOptimizer) {
-                await window.ProductOptimizer.optimize();
+            if (window.ProductOptimizer?.optimizeProduct) {
+                await window.ProductOptimizer.optimizeProduct({ autoApply: false, skipPreview: false });
             } else {
                 console.warn('⚠️ ProductOptimizer模块未加载，使用基本优化功能');
                 this.showBasicOptimization();
