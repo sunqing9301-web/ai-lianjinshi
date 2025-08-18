@@ -1,4 +1,4 @@
-console.log('AI炼金师 - 产品优化专家 popup v2.0.10 已加载');
+console.log('AI炼金师 - 产品优化专家 popup v2.0.11 已加载');
 
 // 全局变量
 let currentConfig = {};
@@ -277,13 +277,17 @@ function setupAutoSave() {
 
 async function autoSave() {
     try {
-        // 构建当前配置
-        const config = {
+        // 读取现有配置，合并非敏感字段并保留 API Key
+        const existing = (await chrome.storage.local.get('ozonOptimizerConfig')).ozonOptimizerConfig || {};
+        const merged = {
+            ...existing,
             api: {
+                ...(existing.api || {}),
                 platform: document.getElementById('apiPlatform').value,
-                deepseek: { apiKey: document.getElementById('deepseekApiKey').value.trim() },
-                tongyi: { apiKey: document.getElementById('tongyiApiKey').value.trim() },
-                bailian: { apiKey: document.getElementById('bailianApiKey').value.trim() }
+                // 保留已保存的密钥，不在自动保存中覆盖
+                deepseek: existing.api?.deepseek || { apiKey: '' },
+                tongyi: existing.api?.tongyi || { apiKey: '' },
+                bailian: existing.api?.bailian || { apiKey: '' }
             },
             presets: {
                 configuration: document.getElementById('configuration').value.trim(),
@@ -308,17 +312,9 @@ async function autoSave() {
                 imageQuality: document.getElementById('imageQuality').value
             }
         };
-        
-        // 只保存非关键配置（不包含API Key）
-        const autoSaveConfig = {
-            ...config,
-            api: {
-                platform: config.api.platform
-            }
-        };
-        
-        await chrome.storage.local.set({ ozonOptimizerConfig: autoSaveConfig });
-        console.log('✅ 配置已自动保存');
+
+        await chrome.storage.local.set({ ozonOptimizerConfig: merged });
+        console.log('✅ 配置已自动保存（保留API Key）');
         
     } catch (error) {
         console.warn('自动保存失败:', error);
