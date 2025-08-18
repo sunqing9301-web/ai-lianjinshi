@@ -303,6 +303,22 @@ class OzonOptimizerApp {
             shadow.appendChild(style);
             shadow.appendChild(wrapper);
             document.body.appendChild(host);
+
+            // 如果有保存的位置，应用并关闭居中 transform
+            try {
+                const savedPos = window.ConfigManager?.get('ui.floatingButtonPosition');
+                if (savedPos && typeof savedPos.x === 'number' && typeof savedPos.y === 'number') {
+                    host.style.right = 'auto';
+                    host.style.transform = 'none';
+                    host.style.left = `${Math.max(0, Math.min(window.innerWidth - 60, savedPos.x))}px`;
+                    host.style.top = `${Math.max(0, Math.min(window.innerHeight - 60, savedPos.y))}px`;
+                }
+            } catch (e) {
+                console.warn('读取悬浮按钮位置失败:', e);
+            }
+
+            // 启用拖拽
+            this.enableDragForHost(host, shadow);
             
             console.log('✅ 悬浮按钮创建成功');
             
