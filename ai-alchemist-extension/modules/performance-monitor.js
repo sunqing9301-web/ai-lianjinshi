@@ -173,7 +173,7 @@ class PerformanceMonitor {
         this.startTimer(key, { url, method: options.method || 'GET' });
         
         try {
-            const response = await fetch(url, options);
+            const response = await PerformanceMonitor.__originalFetch(url, options);
             this.endTimer(key, { 
                 status: response.status, 
                 ok: response.ok,
@@ -225,13 +225,13 @@ class PerformanceMonitor {
      * 拦截fetch请求进行监控
      */
     static interceptFetch() {
-        if (window.fetch.__monitored) return;
-        
-        const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
+        if (window.fetch && window.fetch.__monitored) return;
+        PerformanceMonitor.__originalFetch = window.fetch.bind(window);
+        const wrapper = async function(...args) {
             return PerformanceMonitor.monitorFetch.apply(PerformanceMonitor, args);
         };
-        window.fetch.__monitored = true;
+        wrapper.__monitored = true;
+        window.fetch = wrapper;
     }
     
     /**
