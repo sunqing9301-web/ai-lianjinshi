@@ -522,22 +522,20 @@ class OzonOptimizerApp {
 
 // 兼容性检查
 function checkCompatibility() {
-    const requiredFeatures = [
-        'fetch',
-        'Promise',
-        'localStorage',
-        'document.querySelector',
-        'performance'
-    ];
-    
-    for (const feature of requiredFeatures) {
-        if (!eval(`typeof ${feature}`) || eval(feature) === undefined) {
-            console.error(`❌ 缺少必需功能: ${feature}`);
-            return false;
-        }
+    try {
+        const ok = (
+            typeof fetch === 'function' &&
+            typeof Promise !== 'undefined' &&
+            typeof window !== 'undefined' &&
+            typeof document !== 'undefined' &&
+            typeof document.querySelector === 'function' &&
+            typeof performance !== 'undefined'
+        );
+        if (!ok) console.error('❌ 缺少必需功能');
+        return ok;
+    } catch (_) {
+        return false;
     }
-    
-    return true;
 }
 
 // 启动应用
