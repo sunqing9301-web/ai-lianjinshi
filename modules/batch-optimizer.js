@@ -521,9 +521,11 @@ class BatchOptimizer {
      */
     static setupEventListeners() {
         // 监听配置变更
-        if (window.ConfigManager) {
-            window.ConfigManager.addListener('batchSettingsChanged', (settings) => {
-                this.settings = { ...this.settings, ...settings };
+        if (window.ConfigManager && window.ConfigManager.addListener) {
+            window.ConfigManager.addListener((event, data) => {
+                if (event === 'configChanged' && data && data.batch) {
+                    this.settings = { ...this.settings, ...data.batch };
+                }
             });
         }
     }
@@ -533,9 +535,9 @@ class BatchOptimizer {
      */
     static async loadSettings() {
         try {
-            const config = await window.ConfigManager?.get() || {};
-            if (config.batchOptimization) {
-                this.settings = { ...this.settings, ...config.batchOptimization };
+            const config = await window.ConfigManager?.getAll() || {};
+            if (config.batch) {
+                this.settings = { ...this.settings, ...config.batch };
             }
         } catch (error) {
             console.error('加载批量优化设置失败:', error);
@@ -548,7 +550,7 @@ class BatchOptimizer {
     static async saveSettings() {
         try {
             if (window.ConfigManager) {
-                await window.ConfigManager.set('batchOptimization', this.settings);
+                await window.ConfigManager.set('batch', this.settings);
             }
         } catch (error) {
             console.error('保存批量优化设置失败:', error);

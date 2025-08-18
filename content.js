@@ -60,7 +60,10 @@ class ModuleLoader {
     static async _loadModuleWithRetry(modulePath, attempt = 1) {
         try {
             const script = document.createElement('script');
-            script.src = modulePath;
+            const resolvedSrc = (isExtensionEnvironment() && chrome?.runtime?.getURL)
+                ? chrome.runtime.getURL(modulePath)
+                : modulePath;
+            script.src = resolvedSrc;
             script.type = 'text/javascript';
             
             return new Promise((resolve, reject) => {
@@ -326,9 +329,25 @@ class OzonOptimizerApp {
         // 窗口焦点监听
         window.addEventListener('focus', this.handleWindowFocus.bind(this));
         
-        // 配置变化监听
-        if (window.ConfigManager && window.ConfigManager.onChange) {
-            window.ConfigManager.onChange(this.handleConfigChange.bind(this));
+        // 配置变化监听（来自 ConfigManager 事件）
+        if (window.ConfigManager && window.ConfigManager.addListener) {
+            window.ConfigManager.addListener((event, data) => {
+                if (event === 'configChanged') {
+                    this.handleConfigChange(data || {});
+                }
+            });
+        }
+        
+        // 接收来自后台/弹窗的配置更新消息
+        if (isExtensionEnvironment() && chrome?.runtime?.onMessage) {
+            chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+                if (request && request.action === 'configChanged') {
+                    this.handleConfigChange(request.config || {});
+                    if (typeof sendResponse === 'function') {
+                        sendResponse({ success: true });
+                    }
+                }
+            });
         }
         
         // 错误监听
@@ -373,9 +392,21 @@ class OzonOptimizerApp {
     handleConfigChange(data) {
         console.log('⚙️ 配置已更新:', data);
         
-        // 重新创建UI（如果需要）
-        if (data.showFloatingButton !== undefined) {
-            this.createUI();
+        // 兼容扁平与嵌套schema的显示开关
+        const show = (data?.ui && typeof data.ui.showFloatingButton !== 'undefined')
+            ? data.ui.showFloatingButton
+            : (typeof data?.showFloatingButton !== 'undefined')
+                ? data.showFloatingButton
+                : undefined;
+        
+        if (typeof show !== 'undefined') {
+            const buttons = document.querySelector('.ozon-floating-buttons');
+            if (show === false) {
+                if (buttons) buttons.remove();
+            } else {
+                // 显示或重建
+                this.createUI();
+            }
         }
     }
     

@@ -17,16 +17,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // 悬浮按钮显示切换事件
     document.getElementById('showFloatingBtn').addEventListener('change', function() {
         // 立即发送消息到content script更新按钮显示状态
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            if (tabs[0] && tabs[0].url && tabs[0].url.includes('erp.91miaoshou.com')) {
-                chrome.tabs.sendMessage(tabs[0].id, {
-                    action: 'configChanged',
-                    config: { ui: { showFloatingButton: this.checked } }
-                }).catch(error => {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            const active = tabs && tabs[0];
+            const url = active && active.url || '';
+            const isTarget = /https:\/\/(erp\.91miaoshou\.com|.*\.ozon\.ru|seller\.ozon\.ru)\//.test(url);
+            if (active && isTarget) {
+                try {
+                    chrome.tabs.sendMessage(active.id, {
+                        action: 'configChanged',
+                        config: { ui: { showFloatingButton: this.checked } }
+                    }, () => void 0);
+                } catch (error) {
                     console.warn('发送配置更新消息失败:', error);
-                });
+                }
             }
-        }.bind(this));
+        });
     });
     
     // 添加输入验证
@@ -182,17 +187,21 @@ async function saveSettings() {
         showStatus('设置已保存成功！', 'success');
         
         // 通知content script配置已更新
-        try {
-            const tabs = await chrome.tabs.query({active: true, currentWindow: true});
-            if (tabs[0] && tabs[0].url && tabs[0].url.includes('erp.91miaoshou.com')) {
-                await chrome.tabs.sendMessage(tabs[0].id, {
-                    action: 'configChanged',
-                    config: config
-                });
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            const active = tabs && tabs[0];
+            const url = active && active.url || '';
+            const isTarget = /https:\/\/(erp\.91miaoshou\.com|.*\.ozon\.ru|seller\.ozon\.ru)\//.test(url);
+            if (active && isTarget) {
+                try {
+                    chrome.tabs.sendMessage(active.id, {
+                        action: 'configChanged',
+                        config: config
+                    }, () => void 0);
+                } catch (error) {
+                    console.warn('通知content script失败:', error);
+                }
             }
-        } catch (error) {
-            console.warn('通知content script失败:', error);
-        }
+        });
         
     } catch (error) {
         console.error('保存设置失败:', error);

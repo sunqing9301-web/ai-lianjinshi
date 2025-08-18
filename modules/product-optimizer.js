@@ -54,10 +54,10 @@ class ProductOptimizer {
             const productInfo = await this.extractProductInfo();
             updateProgress(30, '产品信息提取完成');
             
-            // 2. 获取配置
-            const config = await window.ConfigManager?.get() || {};
-            const platform = config.apiPlatform || 'deepseek';
-            const apiKey = config[`${platform}ApiKey`];
+            // 2. 获取配置（嵌套schema）
+            const config = await window.ConfigManager?.getAll() || {};
+            const platform = (config.api && config.api.platform) ? config.api.platform : 'deepseek';
+            const apiKey = window.ConfigManager?.get(`api.${platform}.apiKey`) || '';
             
             if (!apiKey) {
                 throw new Error(`${platform} API密钥未配置，请在设置中配置`);
@@ -66,12 +66,15 @@ class ProductOptimizer {
             updateProgress(40, '正在生成优化提示词...');
             
             // 3. 生成优化提示词
-            const prompt = this.generateOptimizationPrompt(productInfo, config.presetAttributes || {});
+            const prompt = this.generateOptimizationPrompt(
+                productInfo,
+                (config.presets || {})
+            );
             updateProgress(50, '正在调用AI进行优化...');
             
             // 4. 调用AI API进行优化
             const optimizedContent = await window.APIManager?.callAPI(platform, apiKey, prompt, {
-                timeout: config.optimizationTimeout || 30000,
+                timeout: (config.optimization && config.optimization.optimizationTimeout) || 30000,
                 maxTokens: 2000,
                 temperature: 0.7
             });
