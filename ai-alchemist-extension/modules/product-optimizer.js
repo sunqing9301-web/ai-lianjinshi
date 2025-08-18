@@ -350,6 +350,9 @@ ${Object.entries(presetAttributes).filter(([_, value]) => value).map(([key, valu
      */
     static parseOptimizationResult(content) {
         try {
+            if (!content || typeof content !== 'string') {
+                throw new Error('空的优化结果');
+            }
             // 尝试提取JSON内容
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
@@ -382,7 +385,8 @@ ${Object.entries(presetAttributes).filter(([_, value]) => value).map(([key, valu
             console.error('解析优化结果失败:', error);
             
             // 回退方案：简单文本解析
-            const lines = content.split('\n').filter(line => line.trim());
+            const safeContent = typeof content === 'string' ? content : '';
+            const lines = safeContent.split('\n').filter(line => line.trim());
             const result = {
                 title: '',
                 description: '',
@@ -390,7 +394,7 @@ ${Object.entries(presetAttributes).filter(([_, value]) => value).map(([key, valu
                 highlights: [],
                 categorySuggestion: '',
                 optimizationNotes: '自动解析结果，可能不完整',
-                rawContent: content
+                rawContent: safeContent
             };
             
             // 尝试提取标题和描述
@@ -404,7 +408,7 @@ ${Object.entries(presetAttributes).filter(([_, value]) => value).map(([key, valu
             }
             
             if (!result.title && !result.description) {
-                result.description = content.trim();
+                result.description = safeContent.trim();
             }
             
             return result;
