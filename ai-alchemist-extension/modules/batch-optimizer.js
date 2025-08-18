@@ -137,7 +137,6 @@ class BatchOptimizer {
         const nextProductSelectors = [
             '.next-product a',
             '.product-navigation .next a',
-            'a[href*="/product/"]:contains("下一个")',
             '.pagination .next a',
             '.product-list-item:not(.current) + .product-list-item a'
         ];
@@ -146,21 +145,30 @@ class BatchOptimizer {
         const currentProductId = this.extractProductId(window.location.href);
         
         // 查找下一个产品链接
+        // 先按结构化选择器查找
         for (const selector of nextProductSelectors) {
             const nextLink = await window.DOMUtils?.findElementBySelectors([selector]);
             if (nextLink) {
                 const href = nextLink.href;
                 const title = nextLink.textContent?.trim() || '下一个产品';
                 const productId = this.extractProductId(href);
-                
                 if (productId && productId !== currentProductId) {
-                    products.push({
-                        id: productId,
-                        url: href,
-                        title: title,
-                        status: 'pending'
-                    });
+                    products.push({ id: productId, url: href, title, status: 'pending' });
                     break;
+                }
+            }
+        }
+
+        // 若未找到，则尝试文本匹配“下一个”
+        if (products.length === 0 && window.DOMUtils) {
+            const candidates = Array.from(document.querySelectorAll('a[href]'));
+            const nextLink = candidates.find(a => (a.textContent || '').trim().includes('下一个'));
+            if (nextLink) {
+                const href = nextLink.href;
+                const title = nextLink.textContent?.trim() || '下一个产品';
+                const productId = this.extractProductId(href);
+                if (productId && productId !== currentProductId) {
+                    products.push({ id: productId, url: href, title, status: 'pending' });
                 }
             }
         }
