@@ -261,19 +261,20 @@ class OzonOptimizerApp {
                 existingButtons.remove();
             }
             
-            // 创建悬浮按钮组
-            const buttonGroup = document.createElement('div');
-            buttonGroup.className = 'ozon-floating-buttons';
-            buttonGroup.style.cssText = `
-                position: fixed;
-                right: 20px;
-                top: 50%;
-                transform: translateY(-50%);
-                z-index: 10000;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            `;
+            // 使用 Shadow DOM 隔离样式与结构
+            const host = document.createElement('div');
+            host.className = 'ozon-floating-buttons';
+            host.style.position = 'fixed';
+            host.style.right = '20px';
+            host.style.top = '50%';
+            host.style.transform = 'translateY(-50%)';
+            host.style.zIndex = '10000';
+            const shadow = host.attachShadow({ mode: 'open' });
+            
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';
+            wrapper.style.gap = '10px';
             
             // 创建基本的悬浮按钮
             floatingBtn = this.createBasicFloatingButton();
@@ -284,9 +285,24 @@ class OzonOptimizerApp {
             batchBtn.title = 'AI炼金师 - 批量优化';
             batchBtn.addEventListener('click', this.handleBatchOptimizeClick.bind(this));
             
-            buttonGroup.appendChild(floatingBtn);
-            buttonGroup.appendChild(batchBtn);
-            document.body.appendChild(buttonGroup);
+            wrapper.appendChild(floatingBtn);
+            wrapper.appendChild(batchBtn);
+            
+            // 注入基础样式，避免继承站点 CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                .floating-btn { 
+                    width: 60px; height: 60px; border-radius: 50%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: #fff; display: flex; align-items: center; justify-content: center;
+                    font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    transition: all 0.3s ease; user-select: none;
+                }
+                .floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 25px rgba(0,0,0,0.4); }
+            `;
+            shadow.appendChild(style);
+            shadow.appendChild(wrapper);
+            document.body.appendChild(host);
             
             console.log('✅ 悬浮按钮创建成功');
             
