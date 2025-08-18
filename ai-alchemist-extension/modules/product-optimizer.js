@@ -88,8 +88,12 @@ class ProductOptimizer {
             }
             updateProgress(80, '正在应用优化结果...');
             
-            // 6. 应用优化结果
-            await this.applyOptimization(optimizationResult, options.autoApply !== false);
+            // 6. 应用优化结果（先弹预览，避免直接填充失败无感）
+            if (options.skipPreview) {
+                await this.applyOptimization(optimizationResult, true);
+            } else {
+                this.showOptimizationPreview(optimizationResult);
+            }
             updateProgress(90, '正在保存优化记录...');
             
             // 7. 保存优化记录

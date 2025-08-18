@@ -6,14 +6,41 @@
 class APIManager {
     static initialized = false;
     static defaultTimeoutMs = 30000;
+    static port = null;
+    static pending = new Map();
+    static reqIdSeq = 1;
 
     static async init() {
         try {
             this.initialized = true;
+            this.ensurePort();
             return true;
         } catch (error) {
             console.error('APIManager 初始化失败:', error);
             return false;
+        }
+    }
+
+    static ensurePort() {
+        try {
+            if (this.port) return;
+            if (!chrome?.runtime?.connect) return;
+            const port = chrome.runtime.connect({ name: 'proxy' });
+            port.onMessage.addListener((msg) => {
+                const id = msg && msg.id;
+                if (!id) return;
+                const pending = this.pending.get(id);
+                if (pending) {
+                    this.pending.delete(id);
+                    pending.resolve(msg);
+                }
+            });
+            port.onDisconnect.addListener(() => {
+                this.port = null;
+            });
+            this.port = port;
+        } catch (_) {
+            // ignore
         }
     }
 
@@ -134,24 +161,43 @@ class APIManager {
      * 通过后台代理发起请求，返回文本
      */
     static async proxyFetch(url, options, timeoutMs) {
-        // 首选通过SW代理，避免CORS
-        const respPromise = new Promise((resolve) => {
+        // 优先使用长连接端口，避免SW在长请求中被回收
+        try {
+            this.ensurePort();
+            if (this.port) {
+                const id = `r${Date.now()}_${this.reqIdSeq++}`;
+                const msg = { type: 'proxyFetch', id, request: { url, options } };
+                const result = await this.withTimeout(new Promise((resolve) => {
+                    this.pending.set(id, { resolve });
+                    this.port.postMessage(msg);
+                }), timeoutMs || this.defaultTimeoutMs).catch(() => null);
+                if (result) {
+                    if (result.success) {
+                        if (!result.ok) throw new Error(`请求失败: ${result.status}`);
+                        return result.body || '';
+                    }
+                    throw new Error(`代理请求失败: ${result.error || '未知错误'}`);
+                }
+            }
+        } catch (e) {
+            // 端口不可用，降级
+        }
+
+        // 次选：短消息代理
+        const response = await this.withTimeout(new Promise((resolve) => {
             try {
-                chrome.runtime.sendMessage({ action: 'proxyFetch', request: { url, options } }, (res) => {
-                    resolve(res);
-                });
+                chrome.runtime.sendMessage({ action: 'proxyFetch', request: { url, options } }, (res) => resolve(res));
             } catch (e) {
                 resolve(null);
             }
-        });
+        }), timeoutMs || this.defaultTimeoutMs).catch(() => null);
 
-        const response = await this.withTimeout(respPromise, timeoutMs || this.defaultTimeoutMs).catch(() => null);
-
-        if (response && response.success) {
-            if (!response.ok) {
-                throw new Error(`请求失败: ${response.status}`);
+        if (response) {
+            if (response.success) {
+                if (!response.ok) throw new Error(`请求失败: ${response.status}`);
+                return response.body || '';
             }
-            return response.body || '';
+            throw new Error(`代理请求失败: ${response.error || '未知错误'}`);
         }
 
         // 退化为直接fetch（在某些允许的环境中可用）
