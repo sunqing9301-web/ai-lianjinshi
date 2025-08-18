@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI炼金师 - 产品优化专家",
-  "version": "2.0.21",
-  "description": "AI炼金师 - 产品优化专家 v2.0.21 - 智能化产品信息优化工具，支持DeepSeek、通义千问、百炼等AI平台，将普通产品信息转化为高转化率的优质内容",
+  "version": "2.0.22",
+  "description": "AI炼金师 - 产品优化专家 v2.0.22 - 智能化产品信息优化工具，支持DeepSeek、通义千问、百炼等AI平台，将普通产品信息转化为高转化率的优质内容",
   "permissions": [
     "activeTab",
     "storage",

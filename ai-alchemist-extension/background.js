@@ -1,6 +1,6 @@
 /**
  * AI炼金师 - 产品优化专家 Background Service Worker
- * @version 2.0.21
+ * @version 2.0.22
  */
 
 console.log('🚀 AI炼金师 Background Service Worker 启动');
@@ -91,6 +91,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             console.warn('⚠️ 未知消息类型:', request.action);
             sendResponse({ success: false, error: 'Unknown action' });
     }
+});
+
+// 长连接端口：用于代理跨域请求，避免SW在长耗时期间被回收
+chrome.runtime.onConnect.addListener((port) => {
+    if (port.name !== 'proxy') return;
+    port.onMessage.addListener(async (msg) => {
+        if (!msg || msg.type !== 'proxyFetch' || !msg.id) return;
+        const req = msg.request || {};
+        try {
+            const response = await fetch(req.url, req.options || {});
+            const text = await response.text();
+            const headersObj = {};
+            response.headers.forEach((v, k) => { headersObj[k] = v; });
+            port.postMessage({ id: msg.id, success: true, ok: response.ok, status: response.status, headers: headersObj, body: text });
+        } catch (error) {
+            port.postMessage({ id: msg.id, success: false, error: error?.message || String(error) });
+        }
+    });
 });
 
 // 标签页更新处理
