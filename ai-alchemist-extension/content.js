@@ -326,10 +326,8 @@ class OzonOptimizerApp {
     }
     
     setupEventListeners() {
-        // 页面变化监听
-        if (window.DOMUtils && window.DOMUtils.onPageChange) {
-            window.DOMUtils.onPageChange(this.handlePageChange.bind(this));
-        }
+        // 妙手ERP SPA路由与就绪监听
+        this.setupSpaListeners();
         
         // 窗口焦点监听
         window.addEventListener('focus', this.handleWindowFocus.bind(this));
@@ -358,6 +356,40 @@ class OzonOptimizerApp {
         // 错误监听
         window.addEventListener('error', this.handleGlobalError.bind(this));
         window.addEventListener('unhandledrejection', this.handleUnhandledRejection.bind(this));
+    }
+
+    setupSpaListeners() {
+        // 路由变更拦截（pushState/replaceState）
+        const wrapHistory = (type) => {
+            const orig = history[type];
+            history[type] = function() {
+                const ret = orig.apply(this, arguments);
+                window.dispatchEvent(new Event('aiOptimizer:navigation')); 
+                return ret;
+            };
+        };
+        wrapHistory('pushState');
+        wrapHistory('replaceState');
+        window.addEventListener('popstate', () => window.dispatchEvent(new Event('aiOptimizer:navigation')));
+
+        // 路由变更时，等待页面就绪（妙手ERP表单区域）
+        const onNavigate = () => {
+            this.handlePageChange();
+            // 仅监听与表单区域相关的容器，减少开销
+            const target = document.body;
+            if (!target) return;
+            if (this._mo) this._mo.disconnect();
+            this._mo = new MutationObserver(() => {
+                // 简单就绪条件：存在常见表单根/编辑区域标识
+                const ready = document.querySelector('[data-product-form], .product-edit, form[action*="product"], [data-v-app]');
+                if (ready) {
+                    this.handlePageChange();
+                }
+            });
+            this._mo.observe(target, { childList: true, subtree: true });
+        };
+        window.addEventListener('aiOptimizer:navigation', onNavigate);
+        onNavigate();
     }
     
     async handleOptimizeClick() {
