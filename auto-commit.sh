@@ -22,6 +22,12 @@ while true; do
     branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
     msg="chore(auto-commit): save changes at ${ts}"
 
+    # Auto bump version when extension files changed
+    if git status --porcelain ai-alchemist-extension | grep -q .; then
+      echo "[auto-commit] extension changes detected -> bumping version"
+      /workspace/bump-version.sh || echo "[auto-commit] bump-version failed (continuing)"
+    fi
+
     echo "[auto-commit] changes detected -> committing: $msg"
     git add -A || true
     git commit -m "$msg" || echo "[auto-commit] nothing to commit"
