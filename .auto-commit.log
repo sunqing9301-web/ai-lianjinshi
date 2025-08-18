@@ -34,3 +34,12 @@ To https://github.com/sunqing9301-web/ai-lianjinshi
 [bump-version] 2.0.6 -> 2.0.7
 [bump-version] done
 [auto-commit] changes detected -> committing: chore(auto-commit): save changes at 2025-08-18 10:42:01
+[main 3d8b2fb] chore(auto-commit): save changes at 2025-08-18 10:42:01
+ 9 files changed, 21 insertions(+), 18 deletions(-)
+[auto-commit] pushing to origin main
+To https://github.com/sunqing9301-web/ai-lianjinshi
+   c652ed3..3d8b2fb  main -> main
+[auto-commit] extension changes detected -> bumping version
+[bump-version] 2.0.7 -> 2.0.8
+[bump-version] done
+[auto-commit] changes detected -> committing: chore(auto-commit): save changes at 2025-08-18 10:42:11

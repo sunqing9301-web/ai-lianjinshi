@@ -4,7 +4,7 @@
  */
 
 // 启动日志
-console.log('🚀 AI炼金师 - 产品优化专家 v2.0.7 启动中...');
+console.log('🚀 AI炼金师 - 产品优化专家 v2.0.8 启动中...');
 
 // 模块列表 - 按依赖顺序排列
 const modules = [
@@ -637,12 +637,16 @@ if (checkCompatibility()) {
         }
     };
     
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(startApp, 1000);
-        });
-    } else {
-        setTimeout(startApp, 1000);
+    // 防重复：只运行一次
+    if (!window.__aiOptimizerStarted) {
+        window.__aiOptimizerStarted = true;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(startApp, 500);
+            });
+        } else {
+            setTimeout(startApp, 500);
+        }
     }
 } else {
     console.log('🚫 兼容性检查失败，应用未启动');
