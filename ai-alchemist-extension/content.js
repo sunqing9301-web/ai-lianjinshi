@@ -4,7 +4,7 @@
  */
 
 // 启动日志
-console.log('🚀 AI炼金师 - 产品优化专家 v2.0.9 启动中...');
+console.log('🚀 AI炼金师 - 产品优化专家 v2.0.10 启动中...');
 
 // 模块列表 - 按依赖顺序排列
 const modules = [
@@ -456,7 +456,9 @@ class OzonOptimizerApp {
         try {
             isOptimizing = true;
             
-            if (window.ProductOptimizer?.optimizeProduct) {
+            if (window.ProductOptimizer?.optimize) {
+                await window.ProductOptimizer.optimize();
+            } else if (window.ProductOptimizer?.optimizeProduct) {
                 await window.ProductOptimizer.optimizeProduct({ autoApply: false, skipPreview: false });
             } else {
                 console.warn('⚠️ ProductOptimizer模块未加载，使用基本优化功能');
