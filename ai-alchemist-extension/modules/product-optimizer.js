@@ -305,41 +305,31 @@ class ProductOptimizer {
      * @returns {string} 优化提示词
      */
     static generateOptimizationPrompt(productInfo, presetAttributes = {}) {
-        const prompt = `
-请作为专业的电商产品信息优化专家，帮我优化以下产品信息。请根据电商平台的最佳实践，提供更吸引人、更专业的产品标题和描述。
+        // 构建尺寸信息文本（尽量贴合旧版逻辑，若无则不添加）
+        let dimensionsText = '';
+        const lengthVal = productInfo.attributes?.['长度'] || productInfo.attributes?.['长'];
+        const widthVal = productInfo.attributes?.['宽度'] || productInfo.attributes?.['宽'];
+        const heightVal = productInfo.attributes?.['高度'] || productInfo.attributes?.['高'];
+        if (lengthVal || widthVal || heightVal) {
+            dimensionsText = `\n产品尺寸信息：\n- 长度: ${lengthVal || '未填写'}\n- 宽度: ${widthVal || '未填写'}\n- 高度: ${heightVal || '未填写'}`;
+        }
 
-**当前产品信息：**
-标题：${productInfo.title || '未提供'}
-描述：${productInfo.description || '未提供'}
-价格：${productInfo.price || '未提供'}
-品牌：${productInfo.brand || '未提供'}
+        // 旧版可选的包装信息片段
+        const pkgParts = [];
+        if (presetAttributes.configuration) pkgParts.push(`配置: ${presetAttributes.configuration}`);
+        if (presetAttributes.manufacturer) pkgParts.push(`制造商: ${presetAttributes.manufacturer}`);
+        if (presetAttributes.packageQuantity) pkgParts.push(`包装数量: ${presetAttributes.packageQuantity}`);
+        if (presetAttributes.targetAudience) pkgParts.push(`目标受众: ${presetAttributes.targetAudience}`);
+        const packageInfoBlock = pkgParts.length > 0 ? `\n包装信息：\n${pkgParts.join('\n')}` : '';
 
-**产品属性：**
-${Object.entries(productInfo.attributes).map(([key, value]) => `${key}：${value}`).join('\n') || '未提供'}
+        // 旧版提示词（保持不变）
+        let prompt = `你是一个专业的Ozon电商产品优化专家。请根据以下产品信息，生成优化的产品属性：\n\n产品基本信息：\n- 产品来源URL: ${productInfo.url || '未提供'}\n- 产品分类: ${productInfo.category || '未提供'}\n- 当前产品标题: ${productInfo.title || '未提供'}\n- 当前产品描述: ${productInfo.description || '未提供'}${dimensionsText}`;
+        if (packageInfoBlock) {
+            prompt += packageInfoBlock;
+        }
+        prompt += `\n\n请生成以下内容（全部使用俄语）：\n\n产品标题（核心标题 + 长尾关键词）：\n产品描述（至少300字，不包含尺寸信息，要有标点符号）：\n产品关键词（至少20个，用分号分隔）：\n产品标签（俄语，社交媒体风格，不包含品牌名，安全词汇，以#开头，只能包含字母、数字、下划线，最大28字符，数量最少25个，数量最好30个，用空格分隔）：\n\n请严格按照以上格式输出，每个部分都要有明确的标题。注意：标题必须使用中文，内容使用俄语。**不要输出任何markdown语法，不要加粗，不要用**包裹内容。**`;
 
-**预设属性（如果适用，请融入优化结果）：**
-${Object.entries(presetAttributes).filter(([_, value]) => value).map(([key, value]) => `${key}：${value}`).join('\n') || '无'}
-
-**优化要求：**
-1. 标题要简洁有力，突出产品核心卖点，长度控制在60字符以内
-2. 描述要详细专业，包含产品特点、用途、优势等，结构清晰
-3. 使用吸引人的营销词汇，但避免夸大宣传
-4. 考虑SEO优化，包含相关关键词
-5. 符合中文表达习惯
-
-**请按以下JSON格式返回优化结果：**
-{
-  "title": "优化后的产品标题",
-  "description": "优化后的产品描述",
-  "keywords": ["关键词1", "关键词2", "关键词3"],
-  "highlights": ["卖点1", "卖点2", "卖点3"],
-  "category_suggestion": "建议的产品分类",
-  "optimization_notes": "优化说明和建议"
-}
-
-请确保返回的是有效的JSON格式，不要包含其他文字说明。
-        `.trim();
-        
+        console.log('构建的AI提示词(旧版模板):', prompt);
         return prompt;
     }
     
@@ -353,66 +343,61 @@ ${Object.entries(presetAttributes).filter(([_, value]) => value).map(([key, valu
             if (!content || typeof content !== 'string') {
                 throw new Error('空的优化结果');
             }
-            // 尝试提取JSON内容
+            // 优先尝试JSON
             const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('未找到有效的JSON格式结果');
+            if (jsonMatch) {
+                const jsonStr = jsonMatch[0];
+                const result = JSON.parse(jsonStr);
+                if (!result.title || !result.description) {
+                    throw new Error('优化结果缺少必要字段');
+                }
+                result.keywords = result.keywords || [];
+                result.highlights = result.highlights || [];
+                return {
+                    title: result.title.trim(),
+                    description: result.description.trim(),
+                    keywords: Array.isArray(result.keywords) ? result.keywords : [],
+                    highlights: Array.isArray(result.highlights) ? result.highlights : [],
+                    categorySuggestion: result.category_suggestion || '',
+                    optimizationNotes: result.optimization_notes || '',
+                    rawContent: content
+                };
             }
-            
-            const jsonStr = jsonMatch[0];
-            const result = JSON.parse(jsonStr);
-            
-            // 验证必要字段
-            if (!result.title || !result.description) {
-                throw new Error('优化结果缺少必要字段');
-            }
-            
-            // 确保数组字段存在
-            result.keywords = result.keywords || [];
-            result.highlights = result.highlights || [];
-            
-            return {
-                title: result.title.trim(),
-                description: result.description.trim(),
-                keywords: result.keywords,
-                highlights: result.highlights,
-                categorySuggestion: result.category_suggestion || '',
-                optimizationNotes: result.optimization_notes || '',
-                rawContent: content
-            };
             
         } catch (error) {
             console.error('解析优化结果失败:', error);
-            
-            // 回退方案：简单文本解析
-            const safeContent = typeof content === 'string' ? content : '';
-            const lines = safeContent.split('\n').filter(line => line.trim());
-            const result = {
-                title: '',
-                description: '',
-                keywords: [],
-                highlights: [],
-                categorySuggestion: '',
-                optimizationNotes: '自动解析结果，可能不完整',
-                rawContent: safeContent
-            };
-            
-            // 尝试提取标题和描述
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line.includes('标题') && !result.title) {
-                    result.title = line.replace(/.*标题[：:]*/, '').trim();
-                } else if (line.includes('描述') && !result.description) {
-                    result.description = line.replace(/.*描述[：:]*/, '').trim();
-                }
-            }
-            
-            if (!result.title && !result.description) {
-                result.description = safeContent.trim();
-            }
-            
-            return result;
+            // 继续走到旧版格式解析
         }
+
+        // 旧版分段格式解析（严格贴近旧版正则）
+        const safeContent = typeof content === 'string' ? content : '';
+        const legacy = { title: '', description: '', keywords: [], highlights: [], categorySuggestion: '', optimizationNotes: '', rawContent: safeContent };
+
+        try {
+            const titleMatch = safeContent.match(/(?:###\s*)?产品标题(?:[（(][^）)]*[）)])?\s*[：:：]?\s*([\s\S]*?)(?=\n###|\n产品描述|$)/);
+            if (titleMatch) legacy.title = titleMatch[1].replace(/\*\*/g, '').trim();
+
+            const descMatch = safeContent.match(/(?:###\s*)?产品描述(?:[（(][^）)]*[）)])?\s*[：:：]?\s*([\s\S]*?)(?=\n###|\n产品关键词|$)/);
+            if (descMatch) legacy.description = descMatch[1].replace(/\*\*/g, '').trim();
+
+            const keywordsMatch = safeContent.match(/(?:###\s*)?产品关键词(?:[（(][^）)]*[）)])?\s*[：:：]?\s*([\s\S]*?)(?=\n###|\n产品标签|$)/);
+            if (keywordsMatch) {
+                const kwText = keywordsMatch[1].replace(/\*\*/g, '').trim();
+                legacy.keywords = kwText.split(/[；;\n]+/).map(s => s.trim()).filter(Boolean);
+            }
+
+            const tagsMatch = safeContent.match(/(?:###\s*)?产品标签(?:[（(][^）)]*[）)])?\s*[：:：]?\s*([\s\S]*?)(?=\n|$)/);
+            if (tagsMatch) {
+                const tagText = tagsMatch[1].replace(/\*\*/g, '').trim();
+                // 空格分隔的#标签
+                legacy.highlights = tagText.split(/\s+/).map(s => s.trim()).filter(Boolean);
+            }
+        } catch (_) {}
+
+        if (!legacy.title && !legacy.description) {
+            legacy.description = safeContent.trim();
+        }
+        return legacy;
     }
     
     /**
