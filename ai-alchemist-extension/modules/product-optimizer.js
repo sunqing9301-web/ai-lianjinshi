@@ -189,6 +189,47 @@ class ProductOptimizer {
             // 妙手ERP优先：直接从表单读取来源链接、标题、描述、分类
             if (isMiaoshouERP) {
                 try {
+                    const sanitizeTitle = (text) => {
+                        if (!text) return '';
+                        let t = String(text);
+                        // 去除常见计数器行，如 48/255
+                        t = t.replace(/(^|\n)\s*\d+\s*\/\s*\d+\s*(?=\n|$)/g, '\n');
+                        // 去除常见提示按钮文案
+                        t = t.replace(/应用提示|取消|确定/g, '');
+                        // 合并多余空白
+                        t = t.replace(/[\t\r]+/g, ' ').replace(/\s+\n/g, '\n');
+                        return t.trim();
+                    };
+
+                    const findERPTitleInput = () => {
+                        // 优先: label[for="title"]
+                        const labelFor = document.querySelector('label[for="title"]');
+                        if (labelFor) {
+                            const formItem = labelFor.closest('.el-form-item');
+                            const input = formItem?.querySelector('input.el-input__inner');
+                            if (input) return input;
+                        }
+                        // 次选: 文本严格匹配"产品标题"的label/span
+                        const allLabels = document.querySelectorAll('label, span');
+                        for (const el of allLabels) {
+                            const text = (el.textContent || '').trim();
+                            if (text === '产品标题：' || text === '产品标题') {
+                                const formItem = el.closest('.el-form-item');
+                                const input = formItem?.querySelector('input.el-input__inner');
+                                if (input) return input;
+                            }
+                        }
+                        // 兜底: 寻找可能的输入框，排除只读
+                        const candidates = document.querySelectorAll('input.el-input__inner');
+                        for (const input of candidates) {
+                            const formItem = input.closest('.el-form-item');
+                            const labelSpan = formItem ? formItem.querySelector('label span, .edit-field-label span') : null;
+                            const labelText = (labelSpan?.textContent || '').trim();
+                            if (labelText.includes('产品标题')) return input;
+                        }
+                        return null;
+                    };
+
                     // 来源URL：优先标准name字段；否则任何可能的URL输入
                     let src = '';
                     const stdUrl = document.querySelector('input[name="sourceUrl"]');
@@ -212,16 +253,25 @@ class ProductOptimizer {
                     
                     // 标题：通过label/span 文本包含“产品标题”定位到同一表单项内的 input
                     if (!productInfo.title) {
-                        const labelEl = Array.from(document.querySelectorAll('label, span')).find(el => (el.textContent || '').includes('产品标题'));
-                        const input = labelEl?.closest('.el-form-item')?.querySelector('input.el-input__inner');
-                        if (input && input.value) productInfo.title = input.value.trim();
+                        const input = findERPTitleInput();
+                        if (input && input.value) productInfo.title = sanitizeTitle(input.value);
                     }
                     
                     // 描述：通过label/span 文本包含“描述”定位到 textarea
                     if (!productInfo.description) {
-                        const labelEl = Array.from(document.querySelectorAll('label, span')).find(el => (el.textContent || '').includes('描述'));
+                        const labelEl = Array.from(document.querySelectorAll('label, span')).find(el => /描述/.test(el.textContent || ''));
                         const textarea = labelEl?.closest('.el-form-item')?.querySelector('textarea.el-textarea__inner');
                         if (textarea && textarea.value) productInfo.description = textarea.value.trim();
+                        // 兜底: 富文本/任意textarea
+                        if (!productInfo.description) {
+                            const anyTextarea = document.querySelector('textarea.el-textarea__inner, textarea');
+                            if (anyTextarea && anyTextarea.value) productInfo.description = anyTextarea.value.trim();
+                        }
+                        // 兜底: 富文本编辑器
+                        if (!productInfo.description) {
+                            const rich = document.querySelector('[contenteditable="true"], .ql-editor, .note-editable');
+                            if (rich && rich.textContent) productInfo.description = rich.textContent.trim();
+                        }
                     }
                     
                     // 分类：cascader/只读input

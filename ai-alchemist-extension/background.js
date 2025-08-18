@@ -1,6 +1,6 @@
 /**
  * AI炼金师 - 产品优化专家 Background Service Worker
- * @version 2.0.37
+ * @version 2.0.38
  */
 
 console.log('🚀 AI炼金师 Background Service Worker 启动');
