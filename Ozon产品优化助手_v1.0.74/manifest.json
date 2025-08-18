@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Ozon产品自动优化助手",
+  "version": "1.0.74",
+  "description": "自动提取产品信息（包括尺寸），调用DeepSeek、通义千问或百炼优化并自动填写，支持属性预设、悬浮按钮显示控制、自动版本更新、默认尺寸填充、开始/暂停控制、页面跟随显示、图片优化处理。",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://erp.91miaoshou.com/*",
+    "https://api.deepseek.com/*",
+    "https://dashscope.aliyuncs.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://erp.91miaoshou.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+} 
