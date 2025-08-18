@@ -6,53 +6,48 @@
 
 class ConfigManager {
     static defaultConfig = {
-        // API配置
-        apiPlatform: 'deepseek',
-        deepseekApiKey: '',
-        tongyiApiKey: '',
-        bailianApiKey: '',
-        
-        // 预设属性
-        presetAttributes: {
-            brand: '',
-            category: '',
-            material: '',
-            color: '',
-            size: '',
-            weight: '',
-            features: ''
+        api: {
+            platform: 'deepseek',
+            deepseek: { apiKey: '' },
+            tongyi: { apiKey: '' },
+            bailian: { apiKey: '' }
         },
-        
-        // UI配置
-        showFloatingButton: true,
-        floatingButtonPosition: { x: 20, y: 100 },
-        
-        // 优化配置
-        enableImageOptimization: true,
-        optimizationTimeout: 30000,
-        maxRetries: 3,
-        
-        // 调试配置
-        debugMode: false,
-        enablePerformanceMonitoring: false,
-        logLevel: 'info', // 'debug', 'info', 'warn', 'error'
-        
-        // 缓存配置
-        enableCache: true,
-        cacheExpiration: 3600000, // 1小时
-        maxCacheSize: 100,
-        
-        // 高级配置
-        autoSave: true,
-        autoSaveInterval: 5000,
-        enableNotifications: true,
-        notificationDuration: 3000,
-        
-        // 语言配置
+        presets: {
+            configuration: '',
+            manufacturer: '中国',
+            packageQuantity: '',
+            targetAudience: ''
+        },
+        ui: {
+            showFloatingButton: true,
+            floatingButtonPosition: { x: 20, y: 100 }
+        },
+        batch: {
+            enabled: true,
+            autoNavigate: true,
+            skipOptimized: true,
+            delayBetweenProducts: 3000,
+            maxRetries: 3
+        },
+        optimization: {
+            enableImageOptimization: true,
+            imageOptimizationType: 'smart_ecommerce',
+            targetImageSize: '1000x1000',
+            imageQuality: 'high',
+            optimizationTimeout: 30000
+        },
+        debug: {
+            debugMode: false,
+            enablePerformanceMonitoring: false,
+            logLevel: 'info'
+        },
+        cache: {
+            enableCache: true,
+            cacheExpiration: 3600000,
+            maxCacheSize: 100
+        },
         language: 'zh-CN',
-        
-        // 版本信息
-        version: '1.0.87',
+        version: '2.0.2',
         lastUpdated: null
     };
     
@@ -79,10 +74,20 @@ class ConfigManager {
      */
     static async loadConfig() {
         try {
-            const result = await chrome.storage.sync.get(null);
-            this.configCache = { ...this.defaultConfig, ...result };
+            // 读取 local 中的嵌套配置
+            const result = await chrome.storage.local.get('ozonOptimizerConfig');
+            let config = result.ozonOptimizerConfig;
             
-            // 更新最后加载时间
+            // 如果不存在，尝试从旧的 sync 扁平结构迁移
+            if (!config) {
+                const legacy = await chrome.storage.sync.get(null).catch(() => ({}));
+                config = this.migrateLegacyToNested(legacy || {});
+                // 写回 local
+                await chrome.storage.local.set({ ozonOptimizerConfig: config });
+            }
+            
+            // 合并默认值
+            this.configCache = this.mergeDeep(structuredClone(this.defaultConfig), config || {});
             this.configCache.lastUpdated = Date.now();
             
             // 验证配置完整性
@@ -91,7 +96,7 @@ class ConfigManager {
             return this.configCache;
         } catch (error) {
             console.error('加载配置失败:', error);
-            this.configCache = { ...this.defaultConfig };
+            this.configCache = structuredClone(this.defaultConfig);
             return this.configCache;
         }
     }
@@ -107,27 +112,19 @@ class ConfigManager {
             let configToSave;
             
             if (merge) {
-                // 合并配置
-                this.configCache = { ...this.configCache, ...config };
+                this.configCache = this.mergeDeep(structuredClone(this.configCache || {}), config);
                 configToSave = this.configCache;
             } else {
-                // 完全替换
-                configToSave = { ...this.defaultConfig, ...config };
+                configToSave = this.mergeDeep(structuredClone(this.defaultConfig), config);
                 this.configCache = configToSave;
             }
             
-            // 更新时间戳
             configToSave.lastUpdated = Date.now();
-            
-            // 验证配置
             this.validateConfig(configToSave);
             
-            // 保存到存储
-            await chrome.storage.sync.set(configToSave);
+            await chrome.storage.local.set({ ozonOptimizerConfig: configToSave });
             
-            // 通知监听器
             this.notifyListeners('configSaved', configToSave);
-            
             console.log('✅ 配置保存成功');
         } catch (error) {
             console.error('❌ 配置保存失败:', error);
@@ -141,24 +138,37 @@ class ConfigManager {
      * @param {*} defaultValue - 默认值
      * @returns {*} 配置值
      */
-    static get(key, defaultValue = null) {
+    static get(key = null, defaultValue = null) {
         if (!this.configCache) {
             console.warn('配置未加载，返回默认值');
+            if (key === null) return structuredClone(this.defaultConfig);
             return this.getDefault(key, defaultValue);
         }
+        if (key === null) {
+            return structuredClone(this.configCache);
+        }
         
-        // 支持点号分隔的嵌套键
-        const keys = key.split('.');
+        // 兼容旧扁平键名到新结构
+        const alias = {
+            'apiPlatform': 'api.platform',
+            'deepseekApiKey': 'api.deepseek.apiKey',
+            'tongyiApiKey': 'api.tongyi.apiKey',
+            'bailianApiKey': 'api.bailian.apiKey',
+            'showFloatingButton': 'ui.showFloatingButton',
+            'floatingButtonPosition': 'ui.floatingButtonPosition',
+            'batchOptimization': 'batch'
+        };
+        const path = alias[key] || key;
+        
+        const keys = path.split('.');
         let value = this.configCache;
-        
         for (const k of keys) {
             if (value && typeof value === 'object' && k in value) {
                 value = value[k];
             } else {
-                return defaultValue !== null ? defaultValue : this.getDefault(key, null);
+                return defaultValue !== null ? defaultValue : this.getDefault(path, null);
             }
         }
-        
         return value;
     }
     
@@ -174,10 +184,19 @@ class ConfigManager {
             await this.loadConfig();
         }
         
-        // 支持点号分隔的嵌套键
-        const keys = key.split('.');
-        let target = this.configCache;
+        const alias = {
+            'apiPlatform': 'api.platform',
+            'deepseekApiKey': 'api.deepseek.apiKey',
+            'tongyiApiKey': 'api.tongyi.apiKey',
+            'bailianApiKey': 'api.bailian.apiKey',
+            'showFloatingButton': 'ui.showFloatingButton',
+            'floatingButtonPosition': 'ui.floatingButtonPosition',
+            'batchOptimization': 'batch'
+        };
+        const path = alias[key] || key;
         
+        const keys = path.split('.');
+        let target = this.configCache;
         for (let i = 0; i < keys.length - 1; i++) {
             const k = keys[i];
             if (!target[k] || typeof target[k] !== 'object') {
@@ -185,7 +204,6 @@ class ConfigManager {
             }
             target = target[k];
         }
-        
         const lastKey = keys[keys.length - 1];
         const oldValue = target[lastKey];
         target[lastKey] = value;
@@ -195,7 +213,7 @@ class ConfigManager {
         }
         
         // 通知监听器
-        this.notifyListeners('configChanged', { key, value, oldValue });
+        this.notifyListeners('configChanged', { key: path, value, oldValue });
     }
     
     /**
@@ -253,35 +271,34 @@ class ConfigManager {
     static validateConfig(config = this.configCache) {
         if (!config) return;
         
-        // 验证API平台
         const validPlatforms = ['deepseek', 'tongyi', 'bailian'];
-        if (!validPlatforms.includes(config.apiPlatform)) {
-            config.apiPlatform = this.defaultConfig.apiPlatform;
+        if (!validPlatforms.includes(config.api?.platform)) {
+            config.api.platform = this.defaultConfig.api.platform;
         }
         
-        // 验证数值范围
-        if (config.optimizationTimeout < 5000 || config.optimizationTimeout > 120000) {
-            config.optimizationTimeout = this.defaultConfig.optimizationTimeout;
+        // 数值与范围
+        if (!config.optimization) config.optimization = {};
+        if (config.optimization.optimizationTimeout < 5000 || config.optimization.optimizationTimeout > 120000) {
+            config.optimization.optimizationTimeout = this.defaultConfig.optimization.optimizationTimeout;
+        }
+        if (!config.batch) config.batch = {};
+        if (config.batch.maxRetries < 1 || config.batch.maxRetries > 10) {
+            config.batch.maxRetries = this.defaultConfig.batch.maxRetries;
+        }
+        if (typeof config.batch.delayBetweenProducts !== 'number' || config.batch.delayBetweenProducts < 500) {
+            config.batch.delayBetweenProducts = this.defaultConfig.batch.delayBetweenProducts;
         }
         
-        if (config.maxRetries < 1 || config.maxRetries > 10) {
-            config.maxRetries = this.defaultConfig.maxRetries;
-        }
-        
-        // 验证日志级别
+        // 日志级别
+        if (!config.debug) config.debug = {};
         const validLogLevels = ['debug', 'info', 'warn', 'error'];
-        if (!validLogLevels.includes(config.logLevel)) {
-            config.logLevel = this.defaultConfig.logLevel;
+        if (!validLogLevels.includes(config.debug.logLevel)) {
+            config.debug.logLevel = this.defaultConfig.debug.logLevel;
         }
         
-        // 确保预设属性对象存在
-        if (!config.presetAttributes || typeof config.presetAttributes !== 'object') {
-            config.presetAttributes = { ...this.defaultConfig.presetAttributes };
-        }
-        
-        // 确保悬浮按钮位置对象存在
-        if (!config.floatingButtonPosition || typeof config.floatingButtonPosition !== 'object') {
-            config.floatingButtonPosition = { ...this.defaultConfig.floatingButtonPosition };
+        if (!config.ui) config.ui = {};
+        if (!config.ui.floatingButtonPosition || typeof config.ui.floatingButtonPosition !== 'object') {
+            config.ui.floatingButtonPosition = { ...this.defaultConfig.ui.floatingButtonPosition };
         }
     }
     
@@ -291,15 +308,12 @@ class ConfigManager {
      * @returns {Object} 配置对象
      */
     static exportConfig(includeSecrets = false) {
-        const config = { ...this.configCache };
-        
+        const config = structuredClone(this.configCache || this.defaultConfig);
         if (!includeSecrets) {
-            // 移除敏感信息
-            delete config.deepseekApiKey;
-            delete config.tongyiApiKey;
-            delete config.bailianApiKey;
+            if (config.api?.deepseek) config.api.deepseek.apiKey = '';
+            if (config.api?.tongyi) config.api.tongyi.apiKey = '';
+            if (config.api?.bailian) config.api.bailian.apiKey = '';
         }
-        
         return config;
     }
     
@@ -329,9 +343,20 @@ class ConfigManager {
      * 添加配置变更监听器
      * @param {Function} listener - 监听器函数
      */
-    static addListener(listener) {
-        if (typeof listener === 'function') {
-            this.listeners.add(listener);
+    static addListener(eventOrListener, maybeListener = null) {
+        // 兼容两种签名：addListener(listener) 或 addListener(event, listener)
+        if (typeof eventOrListener === 'function') {
+            this.listeners.add(eventOrListener);
+            return;
+        }
+        if (typeof maybeListener === 'function') {
+            // 包裹一层，根据事件类型转发
+            const wrapper = (event, data) => {
+                if (event === eventOrListener) {
+                    try { maybeListener(data); } catch (e) { console.error(e); }
+                }
+            };
+            this.listeners.add(wrapper);
         }
     }
     
@@ -364,15 +389,10 @@ class ConfigManager {
     static setupStorageListener() {
         if (chrome.storage && chrome.storage.onChanged) {
             chrome.storage.onChanged.addListener((changes, namespace) => {
-                if (namespace === 'sync') {
-                    // 更新缓存
-                    for (const [key, { newValue }] of Object.entries(changes)) {
-                        if (this.configCache) {
-                            this.configCache[key] = newValue;
-                        }
-                    }
-                    
-                    this.notifyListeners('storageChanged', changes);
+                if (namespace === 'local' && changes.ozonOptimizerConfig) {
+                    const newConfig = changes.ozonOptimizerConfig.newValue || {};
+                    this.configCache = this.mergeDeep(structuredClone(this.defaultConfig), newConfig);
+                    this.notifyListeners('configChanged', structuredClone(this.configCache));
                 }
             });
         }
@@ -391,10 +411,10 @@ class ConfigManager {
             loaded: true,
             version: this.configCache.version,
             lastUpdated: this.configCache.lastUpdated ? new Date(this.configCache.lastUpdated).toLocaleString() : '未知',
-            apiPlatform: this.configCache.apiPlatform,
-            hasApiKey: !!(this.configCache[`${this.configCache.apiPlatform}ApiKey`]),
-            debugMode: this.configCache.debugMode,
-            cacheEnabled: this.configCache.enableCache,
+            apiPlatform: this.configCache.api?.platform,
+            hasApiKey: !!(this.get('api.' + (this.configCache.api?.platform || 'deepseek') + '.apiKey')),
+            debugMode: !!this.configCache.debug?.debugMode,
+            cacheEnabled: !!this.configCache.cache?.enableCache,
             listenersCount: this.listeners.size
         };
     }
@@ -413,8 +433,8 @@ class ConfigManager {
         }
         
         // 检查API密钥
-        const platform = this.configCache.apiPlatform;
-        const apiKey = this.configCache[`${platform}ApiKey`];
+        const platform = this.configCache.api?.platform || 'deepseek';
+        const apiKey = this.get(`api.${platform}.apiKey`);
         if (!apiKey) {
             issues.push(`${platform} API密钥未配置`);
         }
@@ -425,7 +445,7 @@ class ConfigManager {
         }
         
         // 检查必要配置项
-        const requiredKeys = ['apiPlatform', 'presetAttributes', 'floatingButtonPosition'];
+        const requiredKeys = ['api.platform', 'presets', 'ui.floatingButtonPosition'];
         for (const key of requiredKeys) {
             if (!(key in this.configCache)) {
                 issues.push(`缺少必要配置项: ${key}`);
@@ -437,6 +457,51 @@ class ConfigManager {
             issues,
             warnings
         };
+    }
+
+    static getAll() {
+        return this.get(null);
+    }
+
+    // 深合并
+    static mergeDeep(target, source) {
+        if (typeof target !== 'object' || target === null) return source;
+        if (typeof source !== 'object' || source === null) return target;
+        for (const key of Object.keys(source)) {
+            if (Array.isArray(source[key])) {
+                target[key] = source[key].slice();
+            } else if (typeof source[key] === 'object' && source[key] !== null) {
+                target[key] = this.mergeDeep(target[key] || {}, source[key]);
+            } else {
+                target[key] = source[key];
+            }
+        }
+        return target;
+    }
+
+    // 旧扁平结构迁移到嵌套结构
+    static migrateLegacyToNested(legacy) {
+        if (!legacy || Object.keys(legacy).length === 0) {
+            return structuredClone(this.defaultConfig);
+        }
+        const nested = structuredClone(this.defaultConfig);
+        // API
+        if (legacy.apiPlatform) nested.api.platform = legacy.apiPlatform;
+        if (legacy.deepseekApiKey) nested.api.deepseek.apiKey = legacy.deepseekApiKey;
+        if (legacy.tongyiApiKey) nested.api.tongyi.apiKey = legacy.tongyiApiKey;
+        if (legacy.bailianApiKey) nested.api.bailian.apiKey = legacy.bailianApiKey;
+        // UI
+        if (typeof legacy.showFloatingButton === 'boolean') nested.ui.showFloatingButton = legacy.showFloatingButton;
+        if (legacy.floatingButtonPosition) nested.ui.floatingButtonPosition = legacy.floatingButtonPosition;
+        // 优化
+        if (typeof legacy.enableImageOptimization === 'boolean') nested.optimization.enableImageOptimization = legacy.enableImageOptimization;
+        if (legacy.optimizationTimeout) nested.optimization.optimizationTimeout = legacy.optimizationTimeout;
+        if (legacy.maxRetries) nested.batch.maxRetries = legacy.maxRetries;
+        // 预设属性 → 简化映射
+        if (legacy.presetAttributes) {
+            nested.presets.configuration = legacy.presetAttributes.features || '';
+        }
+        return nested;
     }
 }
 

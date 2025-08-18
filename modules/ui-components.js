@@ -630,7 +630,7 @@ class UIComponents {
                 };
                 
                 if (window.ConfigManager) {
-                    window.ConfigManager.set('floatingButtonPosition', position);
+                    window.ConfigManager.set('ui.floatingButtonPosition', position);
                 }
             }
         });

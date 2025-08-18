@@ -47,10 +47,7 @@ chrome.runtime.onInstalled.addListener((details) => {
             }
         });
         
-        // 打开欢迎页面
-        chrome.tabs.create({
-            url: chrome.runtime.getURL('welcome.html')
-        });
+        // 可选：首次安装欢迎页（当前移除以避免缺失资源）
         
     } else if (details.reason === 'update') {
         // 更新
