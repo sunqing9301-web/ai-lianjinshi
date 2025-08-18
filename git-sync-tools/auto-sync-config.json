@@ -1,17 +1,69 @@
-﻿{
-    "sync":  {
-                 "branch":  "main",
-                 "retryAttempts":  3,
-                 "autoCommit":  true,
-                 "retryDelay":  30,
-                 "repoPath":  "E:\\AI炼金师-产品优化专家 (2)",
-                 "taskName":  "GitAutoSync",
-                 "remote":  "origin",
-                 "conflictStrategy":  "rebase",
-                 "enabled":  true,
-                 "logFile":  "sync.log",
-                 "autoPush":  true,
-                 "interval":  1,
-                 "silent":  true
-             }
+{
+    "sync": {
+        "enabled": true,
+        "interval": 5,
+        "taskName": "GitAutoSync",
+        "repoPath": "/workspace",
+        "remote": "origin",
+        "branch": "main",
+        "logFile": "sync.log",
+        "silent": true,
+        "autoCommit": true,
+        "autoPush": true,
+        "conflictStrategy": "rebase",
+        "retryAttempts": 3,
+        "retryDelay": 30
+    },
+    "notifications": {
+        "enabled": false,
+        "email": "",
+        "webhook": "",
+        "desktop": true
+    },
+    "backup": {
+        "enabled": true,
+        "backupPath": "backup",
+        "maxBackups": 10,
+        "backupBeforeSync": true
+    },
+    "filters": {
+        "excludeFiles": [
+            "*.tmp",
+            "*.log",
+            "node_modules/",
+            ".git/",
+            "backup/",
+            "*.swp",
+            "*.swo",
+            ".DS_Store",
+            "Thumbs.db"
+        ],
+        "includeFiles": [
+            "*.js",
+            "*.html",
+            "*.css",
+            "*.json",
+            "*.md",
+            "*.txt",
+            "*.py",
+            "*.sh",
+            "*.ps1"
+        ]
+    },
+    "advanced": {
+        "gitConfig": {
+            "user.name": "Auto Sync Bot",
+            "user.email": "auto-sync@example.com",
+            "pull.rebase": true,
+            "push.default": "simple",
+            "core.autocrlf": "input"
+        },
+        "hooks": {
+            "preSync": "",
+            "postSync": "",
+            "onError": ""
+        },
+        "timeout": 300,
+        "maxFileSize": "100MB"
+    }
 }
