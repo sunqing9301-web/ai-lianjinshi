@@ -1,6 +1,6 @@
 /**
  * AI炼金师 - 产品优化专家 Background Service Worker
- * @version 2.0.15
+ * @version 2.0.16
  */
 
 console.log('🚀 AI炼金师 Background Service Worker 启动');
@@ -82,6 +82,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'clearCache':
             handleClearCache(sendResponse);
             return true;
+        
+        case 'proxyFetch':
+            handleProxyFetch(request.request, sendResponse);
+            return true;
             
         default:
             console.warn('⚠️ 未知消息类型:', request.action);
@@ -159,6 +163,27 @@ async function handleClearCache(sendResponse) {
     } catch (error) {
         console.error('❌ 清除缓存失败:', error);
         sendResponse({ success: false, error: error.message });
+    }
+}
+
+// 代理跨域请求，解决内容脚本的CORS限制
+async function handleProxyFetch(req, sendResponse) {
+    try {
+        const url = req?.url;
+        const options = req?.options || {};
+        const response = await fetch(url, options);
+        const text = await response.text();
+        const headersObj = {};
+        response.headers.forEach((v, k) => { headersObj[k] = v; });
+        sendResponse({
+            success: true,
+            ok: response.ok,
+            status: response.status,
+            headers: headersObj,
+            body: text
+        });
+    } catch (error) {
+        sendResponse({ success: false, error: error?.message || String(error) });
     }
 }
 
